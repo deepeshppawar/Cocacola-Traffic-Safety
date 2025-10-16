@@ -1,0 +1,172 @@
+fileFormatVersion: 2
+guid: de6dc33d97cd90d46bb881af52f6f01e
+ModelImporter:
+  serializedVersion: 22200
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HARNESS_CHAR_PLACE_HARNESS_RIGGED_blinnBLACK_TIES
+    second: {fileID: 2100000, guid: c4eff9f914625904581d128e6c3938ca, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HARNESS_CHAR_PLACE_HARNESS_RIGGED_blinnHARNESS_GUIDES
+    second: {fileID: 2100000, guid: c29e0458743c1d54f991bc9f335de6fc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HARNESS_CHAR_PLACE_HARNESS_RIGGED_blinnLEATHER
+    second: {fileID: 2100000, guid: 90ac7bfa8e21ce04c9b7e7f45b292f18, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HARNESS_CHAR_PLACE_HARNESS_RIGGED_blinnNYLON_BLUE
+    second: {fileID: 2100000, guid: 6b45756d4fcd0874f91b0448963e9481, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HARNESS_CHAR_PLACE_HARNESS_RIGGED_blinnNYLON_BLUE_PLAIN
+    second: {fileID: 2100000, guid: 9be2d2a12460bc843bc8f7d0c350913b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HARNESS_CHAR_PLACE_HARNESS_RIGGED_blinnNYLON_BLUE_SEAMS
+    second: {fileID: 2100000, guid: 8604d7976cef0114c84fceee326194c9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HARNESS_CHAR_PLACE_HARNESS_RIGGED_blinnNYLON_ORANGE
+    second: {fileID: 2100000, guid: cfa7e0bf544927a4fada69c6ac26dd37, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HARNESS_CHAR_PLACE_HARNESS_RIGGED_blinnNYLON_ORANGE_PLAIN
+    second: {fileID: 2100000, guid: 0c9497e71db2fb544a301c7d694da266, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HARNESS_CHAR_PLACE_HARNESS_RIGGED_blinnNYLON_ORANGE_SEAMS
+    second: {fileID: 2100000, guid: c25018b22ea04064ca73448795cb86dd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HARNESS_CHAR_PLACE_HARNESS_RIGGED_blinnNYLON_PAD
+    second: {fileID: 2100000, guid: 848a5870a4ccd544fa1831e5baa24881, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HARNESS_RIGGED_blinnMETAL_CLAMPS
+    second: {fileID: 2100000, guid: 4a5194c03fb12cb48977d52735a9cb05, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HARNESS_RIGGED_blinnNYLON_GREEN_PLAIN
+    second: {fileID: 2100000, guid: d38a3910dd537ea419b7eaa33603f05a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HARNESS_RIGGED_blinnNYLON_GREEN_SEAMS
+    second: {fileID: 2100000, guid: 78b56c7791bb2414eb0cc6dc4032f45a, type: 2}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importPhysicalCameras: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 1
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    strictVertexDataChecks: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 1
+  remapMaterialsIfMaterialImportModeIsNone: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
