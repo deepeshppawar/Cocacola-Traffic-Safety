@@ -32,7 +32,6 @@ public sealed class Scene1Manager : MonoBehaviour
 
     // -----------------------------
     // Interaction 1: Greeting / Procedure Explanation (two info canvases)
-    // Scene Mapping: User listens & acknowledges entry briefing
     // -----------------------------
     [Header("Interaction 1 - Greeting / Briefing")]
     [SerializeField] private GameObject i1GreetingCanvasA;        // first info canvas
@@ -42,7 +41,6 @@ public sealed class Scene1Manager : MonoBehaviour
 
     // -----------------------------
     // Interaction 2: Document request -> place docs -> submit complete -> awareness
-    // Scene Mapping: Document Submission
     // -----------------------------
     [Header("Interaction 2 - Documents")]
     [SerializeField] private GameObject i2RequestCanvas;
@@ -55,7 +53,6 @@ public sealed class Scene1Manager : MonoBehaviour
 
     // -----------------------------
     // Interaction 3: Alcohol analyzer test
-    // Scene Mapping: Alcohol Analyzer Test
     // -----------------------------
     [Header("Interaction 3 - Alcohol Analyzer")]
     [SerializeField] private GameObject i3IntroCanvas;            // "Take alcohol analyser test"
@@ -67,12 +64,11 @@ public sealed class Scene1Manager : MonoBehaviour
     [SerializeField] private GameObject i3SuccessCanvas;          // "Complete successful" canvas
     [SerializeField] private Button i3SuccessProceedButton;
 
-    [SerializeField] private GameObject i3ToggleOnObject;         // set active TRUE at start of test, then FALSE at success
-    [SerializeField] private GameObject i3ToggleOffObject;        // set active FALSE at start of test, then TRUE at success
+    [SerializeField] private GameObject i3ToggleOnObject;         // set active TRUE during test, then FALSE at success
+    [SerializeField] private GameObject i3ToggleOffObject;        // set active FALSE during test, then TRUE at success
 
     // -----------------------------
     // Interaction 4: Click listed gameobjects via adjacent UI buttons (all must be clicked)
-    // Scene Mapping: PPE Collection (helmet, jacket, shoes)
     // -----------------------------
     [Serializable]
     private sealed class TargetClickEntry
@@ -90,11 +86,10 @@ public sealed class Scene1Manager : MonoBehaviour
 
     // -----------------------------
     // Interaction 5: Wheel Choke Pickup
-    // Explicit: when Interaction 5 starts -> SetActive(true), on Collect -> SetActive(false)
     // -----------------------------
     [Header("Interaction 5 - Wheel Choke Pickup")]
     [SerializeField] private GameObject i5InfoCanvas;             // simple instruction
-    [SerializeField] private GameObject i5TargetObject;           // wheel choke GO (TRUE at start, FALSE on collect)
+    [SerializeField] private GameObject i5TargetObject;           // wheel choke GO (TRUE at start of I5, FALSE on collect)
     [SerializeField] private Button i5CollectButton;              // the collect button
     [SerializeField] private GameObject i5CompleteCanvas;         // completion
     [SerializeField] private Button i5CompleteProceedButton;
@@ -194,10 +189,28 @@ public sealed class Scene1Manager : MonoBehaviour
 
     private void Start()
     {
-        // Initial visibility
-        HideAll();
+        // 1) Force EVERYTHING we manage to be off
+        HideAll(); // turns off all canvases
 
-        // Show Welcome at start
+        // 2) Also explicitly turn OFF all GOs that will be enabled later in the flow
+        //    (so scene start is always a clean slate)
+        foreach (var doc in i2DocsToActivateOnTable)
+        {
+            if (doc) doc.SetActive(false);
+        }
+
+        foreach (var entry in i4Targets)
+        {
+            if (entry?.targetObject) entry.targetObject.SetActive(false);
+            if (entry != null) entry.clicked = false;
+        }
+
+       
+        if (i3ToggleOnObject) i3ToggleOnObject.SetActive(false);
+
+        if (i5TargetObject)    i5TargetObject.SetActive(false);
+
+        // 3) Finally, show Welcome
         SetActive(welcomeCanvas, true);
     }
 
@@ -212,10 +225,7 @@ public sealed class Scene1Manager : MonoBehaviour
 
     private void OnModuleIntroProceed()
     {
-        // Teleport player to target
         TeleportPlayerToTarget();
-
-        // Start Interaction 1
         StartInteraction1();
     }
 
@@ -261,16 +271,14 @@ public sealed class Scene1Manager : MonoBehaviour
 
     private void OnI2SubmitDocuments()
     {
-        // Activate docs on table
         foreach (var doc in i2DocsToActivateOnTable)
         {
             if (doc) doc.SetActive(true);
         }
 
-        // Show submit complete
         HideAll();
         SetActive(i2SubmitCompleteCanvas, true);
-        // If you want to skip the extra click, call ShowI2Awareness() here instead or Invoke after delay.
+        // (Optional) Invoke(nameof(ShowI2Awareness), 1.0f);
     }
 
     private void ShowI2Awareness()
@@ -281,6 +289,10 @@ public sealed class Scene1Manager : MonoBehaviour
 
     private void OnI2AwarenessProceed()
     {
+        foreach (var doc in i2DocsToActivateOnTable)
+        {
+            if (doc) doc.SetActive(false);
+        }
         StartInteraction3();
     }
 
@@ -341,8 +353,7 @@ public sealed class Scene1Manager : MonoBehaviour
 
     private void OnI4ClickEntry(TargetClickEntry entry)
     {
-        if (entry == null) return;
-        if (entry.clicked) return;
+        if (entry == null || entry.clicked) return;
 
         entry.clicked = true;
         if (entry.targetObject) entry.targetObject.SetActive(false);
@@ -362,15 +373,14 @@ public sealed class Scene1Manager : MonoBehaviour
     }
 
     // =========================================================
-    // Interaction 5: Wheel Choke Pickup (explicit behavior requested)
+    // Interaction 5: Wheel Choke Pickup
     // - Start: i5TargetObject.SetActive(true)
-    // - Collect button: i5TargetObject.SetActive(false)
+    // - Collect: i5TargetObject.SetActive(false)
     // =========================================================
     private void StartInteraction5()
     {
         HideAll();
 
-        // EXPLICIT per request: ensure choke object is visible/active at start
         if (i5TargetObject) i5TargetObject.SetActive(true);
 
         SetActive(i5InfoCanvas, true);
@@ -378,7 +388,6 @@ public sealed class Scene1Manager : MonoBehaviour
 
     private void OnI5Collect()
     {
-        // EXPLICIT per request: turn wheel choke off on collect
         if (i5TargetObject) i5TargetObject.SetActive(false);
 
         HideAll();
