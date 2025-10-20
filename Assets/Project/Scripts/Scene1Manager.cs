@@ -75,6 +75,7 @@ public sealed class Scene1Manager : MonoBehaviour
     {
         public GameObject targetObject;      // will be SetActive(false) upon its button click
         public Button clickButton;           // assign the adjacent UI button
+        public GameObject clickButtonParent;   // optional: parent GO to disable/hide on click
         [HideInInspector] public bool clicked;
     }
 
@@ -357,6 +358,7 @@ public sealed class Scene1Manager : MonoBehaviour
 
         entry.clicked = true;
         if (entry.targetObject) entry.targetObject.SetActive(false);
+        if (entry.clickButtonParent) entry.clickButtonParent.SetActive(false);
 
         // Check if all done
         foreach (var e in i4Targets)
