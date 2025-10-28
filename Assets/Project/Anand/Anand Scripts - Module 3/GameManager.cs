@@ -10,6 +10,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using Unity.XR.CoreUtils; // XROrigin
 // using TMPro; // Not needed for this functionality
+using UnityEngine.XR.Interaction.Toolkit; // at top of the file
+using UnityEngine.XR.Interaction.Toolkit.Interactables; // Add this line for XRBaseInteractable and XRSimpleInteractable
 
 public sealed class GameManager : MonoBehaviour
 {
@@ -251,6 +253,21 @@ public sealed class GameManager : MonoBehaviour
             // Call the TruckReverseEvent method and pass references
             yield return StartCoroutine(TruckReverseEvent(es.references));
         }
+        else if (es.actionName == "BlinkHighlight")
+        {
+            // Example of a BlinkHighlight event with 0.5 second interval
+            yield return StartCoroutine(BlinkHighlightEvent(es, 0.5f));
+        }
+        else if (es.actionName == "ClickTarget")
+        {
+            // Call the ClickTargetEvent method and pass references
+            yield return StartCoroutine(ClickTargetEvent(es));
+        }
+        else if (es.actionName == "MarshallActivity")
+        {
+            // Call the MarshallActivity method and pass references
+            yield return StartCoroutine(MarshallActivityEvent(es.references));
+        }
         else
         {
             // Placeholder for other event actions
@@ -274,10 +291,12 @@ public sealed class GameManager : MonoBehaviour
         if (refsList.Count > 0)
         {
             GameObject person = refsList[0] as GameObject;
-            if (person)
+            GameObject spot = refsList[1] as GameObject;
+            if (person && spot)
             {
                 // Enable the GameObject (i.e., "spawn" it by enabling)
                 person.SetActive(true);
+                spot.SetActive(true);
                 Debug.Log("[GameManager] MarshallSpawn: GameObject enabled.");
             }
             else
@@ -288,6 +307,114 @@ public sealed class GameManager : MonoBehaviour
 
         // Wait briefly before advancing to simulate completion
         yield return new WaitForSeconds(1f); // Placeholder duration
+    }
+    private IEnumerator ClickTargetEvent(EventStep es)
+    {
+        if (es == null)
+            yield break;
+
+        // 1) Get the target GameObject from the event references
+        var target = es.GetRef<GameObject>(0);
+        if (!target)
+        {
+            Debug.LogWarning("[GameManager] ClickTargetEvent: Missing target GameObject in es.references[0].");
+            yield break;
+        }
+
+        // 2) Keep the instruction canvas visible during the event
+        if (es.eventCanvasRoot) es.eventCanvasRoot.SetActive(true);
+
+        // 3) Make sure the target is interactable by XR:
+        //    - needs a Collider
+        //    - needs an XR interactable (XRSimpleInteractable is fine)
+        Collider col = target.GetComponent<Collider>();
+        if (!col)
+        {
+            // Prefer MeshCollider if a mesh exists; otherwise BoxCollider
+            var mf = target.GetComponentInChildren<MeshFilter>();
+            if (mf && mf.sharedMesh)
+            {
+                var mc = target.AddComponent<MeshCollider>();
+                mc.sharedMesh = mf.sharedMesh;
+                col = mc;
+            }
+            else
+            {
+                col = target.AddComponent<BoxCollider>();
+            }
+        }
+
+        XRBaseInteractable interactable = target.GetComponent<XRBaseInteractable>();
+        if (!interactable)
+            interactable = target.AddComponent<XRSimpleInteractable>();
+
+        // 4) Wait until user clicks (trigger). We accept either Select or Activate to be flexible.
+        bool clicked = false;
+
+        void OnSelect(SelectEnterEventArgs _)  { clicked = true; }
+        void OnActivate(ActivateEventArgs   _) { clicked = true; }
+
+        interactable.selectEntered.AddListener(OnSelect);
+        interactable.activated    .AddListener(OnActivate);
+
+        // Ensure target is enabled/visible while waiting
+        bool wasActive = target.activeSelf;
+        if (!wasActive) target.SetActive(true);
+
+        while (!clicked)
+            yield return null;
+
+        // 5) Clean up: remove listeners, hide instruction canvas, disable target
+        interactable.selectEntered.RemoveListener(OnSelect);
+        interactable.activated    .RemoveListener(OnActivate);
+
+        if (es.eventCanvasRoot) es.eventCanvasRoot.SetActive(false);
+        target.SetActive(false);
+
+        Debug.Log("[GameManager] ClickTargetEvent: Target clicked and event completed.");
+    }
+    private IEnumerator MarshallActivityEvent(List<UnityEngine.Object> refsList)
+    {
+        // Ensure we have at least one reference and it is a valid GameObject
+        if (refsList.Count > 0)
+        {
+            GameObject person = refsList[0] as GameObject;
+            GameObject pedestrian = refsList[1] as GameObject;
+            if (person && pedestrian)
+            {
+                // Disable the GameObject (i.e., "despawn" it by disabling)
+                person.SetActive(false);
+                pedestrian.SetActive(true);
+                Debug.Log("[GameManager] MarshallActivity: GameObject disabled.");
+            }
+            else
+            {
+                Debug.LogWarning("[GameManager] MarshallActivity: Invalid GameObject reference.");
+            }
+        }
+
+        // Wait for user to click proceed button before concluding
+        bool proceedPressed = false;
+        UnityEngine.Events.UnityAction proceedAction = () => { proceedPressed = true; };
+
+        // Get the current event step to access the nextButton
+        EventStep currentEvent = steps[_index].ev;
+        if (currentEvent != null && currentEvent.nextButton)
+        {
+            currentEvent.nextButton.onClick.AddListener(proceedAction);
+            
+            // Wait until proceed is pressed
+            while (!proceedPressed)
+                yield return null;
+            
+            // Clean up listener
+            currentEvent.nextButton.onClick.RemoveListener(proceedAction);
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager] MarshallActivity: No proceed button found, auto-advancing after 1 second.");
+            yield return new WaitForSeconds(1f);
+        }
     }
 
     private IEnumerator TruckReverseEvent(List<UnityEngine.Object> refsList)
@@ -325,6 +452,69 @@ public sealed class GameManager : MonoBehaviour
 
         Debug.Log("[GameManager] TruckReverseEvent: Reversal complete.");
     }
+
+    private IEnumerator BlinkHighlightEvent(EventStep es, float intervalSeconds = 0.5f)
+    {
+        if (es == null)
+            yield break;
+
+        // --- Read references ---
+        var goA = es.GetRef<GameObject>(0);
+        var goB = es.GetRef<GameObject>(1);
+
+        if (!goA || !goB)
+        {
+            Debug.LogWarning("[GameManager] BlinkHighlight: Missing GameObject references (need two).");
+            yield break;
+        }
+
+        // Ensure the event canvas (if any) is visible during the event
+        if (es.eventCanvasRoot) es.eventCanvasRoot.SetActive(true);
+
+        // Save original states so we can restore them on exit
+        bool aInitial = goA.activeSelf;
+        bool bInitial = goB.activeSelf;
+
+        // Button wiring: we use a local flag to exit the loop when proceed is pressed
+        bool proceedPressed = false;
+        UnityEngine.Events.UnityAction proceedAction = () => { proceedPressed = true; };
+
+        if (es.nextButton)
+            es.nextButton.onClick.AddListener(proceedAction);
+        else
+            Debug.LogWarning("[GameManager] BlinkHighlight: No Next/Proceed button assigned on EventStep.");
+
+        // Optional: because the GameManager already wires event.nextButton -> Next(),
+        // pressing it will also call GameManager.Next(). That's OK, because our Next()
+        // ignores requests while an event is running. We still need our own listener
+        // above to flip 'proceedPressed' so this coroutine can end cleanly.
+
+        // Initialize one on / one off
+        bool showA = true;
+        goA.SetActive(showA);
+        goB.SetActive(!showA);
+
+        var wait = new WaitForSeconds(intervalSeconds);
+
+        // --- Flicker until Proceed pressed ---
+        while (!proceedPressed)
+        {
+            showA = !showA;
+            goA.SetActive(showA);
+            goB.SetActive(!showA);
+            yield return wait;
+        }
+
+        // Cleanup: restore original states and remove our listener
+        goA.SetActive(aInitial);
+        goB.SetActive(bInitial);
+
+        if (es.nextButton)
+            es.nextButton.onClick.RemoveListener(proceedAction);
+
+        // Done: coroutine returns -> GameManager will auto-advance to the next step
+    }
+
 
     private IEnumerator PlaceholderEventRoutine(string actionName, List<UnityEngine.Object> refsList)
     {
