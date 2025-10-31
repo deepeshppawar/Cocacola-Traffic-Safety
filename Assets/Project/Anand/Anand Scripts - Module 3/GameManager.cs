@@ -12,6 +12,8 @@ using Unity.XR.CoreUtils; // XROrigin
 // using TMPro; // Not needed for this functionality
 using UnityEngine.XR.Interaction.Toolkit; // at top of the file
 using UnityEngine.XR.Interaction.Toolkit.Interactables; // Add this line for XRBaseInteractable and XRSimpleInteractable
+using UnityEngine.XR.Interaction.Toolkit.UI;
+using UnityEngine.Animations; // Add this line for XRRayInteractor
 
 public sealed class GameManager : MonoBehaviour
 {
@@ -258,15 +260,19 @@ public sealed class GameManager : MonoBehaviour
             // Example of a BlinkHighlight event with 0.5 second interval
             yield return StartCoroutine(BlinkHighlightEvent(es, 0.5f));
         }
-        else if (es.actionName == "ClickTarget")
-        {
-            // Call the ClickTargetEvent method and pass references
-            yield return StartCoroutine(ClickTargetEvent(es));
-        }
         else if (es.actionName == "MarshallActivity")
         {
             // Call the MarshallActivity method and pass references
             yield return StartCoroutine(MarshallActivityEvent(es.references));
+        }
+        else if (es.actionName == "ClickButton")
+        {
+            // Call the ClickButton method and pass references
+            yield return StartCoroutine(ClickButtonEvent(es.references));
+        }
+        else if (es.actionName == "DriverMCQ")
+        {
+            yield return StartCoroutine(DriverMCQEvent(es));
         }
         else
         {
@@ -308,71 +314,173 @@ public sealed class GameManager : MonoBehaviour
         // Wait briefly before advancing to simulate completion
         yield return new WaitForSeconds(1f); // Placeholder duration
     }
-    private IEnumerator ClickTargetEvent(EventStep es)
-    {
-        if (es == null)
-            yield break;
 
-        // 1) Get the target GameObject from the event references
-        var target = es.GetRef<GameObject>(0);
-        if (!target)
+    private IEnumerator ClickButtonEvent(List<UnityEngine.Object> refsList)
+    {
+        // Ensure we have at least one reference and it is a valid GameObject
+        if (refsList.Count == 0 || !(refsList[0] is GameObject targetObject))
         {
-            Debug.LogWarning("[GameManager] ClickTargetEvent: Missing target GameObject in es.references[0].");
+            Debug.LogWarning("[GameManager] ClickButton: Missing or invalid GameObject reference.");
             yield break;
         }
 
-        // 2) Keep the instruction canvas visible during the event
+        // Wait for user to click proceed button before concluding
+        bool proceedPressed = false;
+        UnityEngine.Events.UnityAction proceedAction = () => { proceedPressed = true; };
+
+        // Get the current event step to access the nextButton
+        EventStep currentEvent = steps[_index].ev;
+        if (currentEvent != null && currentEvent.nextButton)
+        {
+            currentEvent.nextButton.onClick.AddListener(proceedAction);
+
+            // Wait until proceed is pressed
+            while (!proceedPressed)
+                yield return null;
+
+            // Clean up listener
+            currentEvent.nextButton.onClick.RemoveListener(proceedAction);
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager] ClickButton: No proceed button found, auto-advancing after 1 second.");
+            yield return new WaitForSeconds(1f);
+        }
+
+        // Disable the GameObject
+        if (targetObject != null)
+        {
+            targetObject.SetActive(false);
+            Debug.Log("[GameManager] ClickButton: GameObject disabled and event completed.");
+        }
+    }
+
+    private IEnumerator DriverMCQEvent(EventStep es)
+    {
+        if (es == null) yield break;
+
+        // Ensure the event canvas is visible for the whole interaction
         if (es.eventCanvasRoot) es.eventCanvasRoot.SetActive(true);
 
-        // 3) Make sure the target is interactable by XR:
-        //    - needs a Collider
-        //    - needs an XR interactable (XRSimpleInteractable is fine)
-        Collider col = target.GetComponent<Collider>();
-        if (!col)
+        // Debug logging to check references
+        Debug.Log($"[DriverMCQ] Total references count: {es.references.Count}");
+        for (int i = 0; i < es.references.Count; i++)
         {
-            // Prefer MeshCollider if a mesh exists; otherwise BoxCollider
-            var mf = target.GetComponentInChildren<MeshFilter>();
-            if (mf && mf.sharedMesh)
-            {
-                var mc = target.AddComponent<MeshCollider>();
-                mc.sharedMesh = mf.sharedMesh;
-                col = mc;
-            }
-            else
-            {
-                col = target.AddComponent<BoxCollider>();
-            }
+            Debug.Log($"[DriverMCQ] Reference[{i}]: {es.references[i]} (Type: {es.references[i]?.GetType().Name ?? "null"})");
         }
 
-        XRBaseInteractable interactable = target.GetComponent<XRBaseInteractable>();
-        if (!interactable)
-            interactable = target.AddComponent<XRSimpleInteractable>();
+        // ---- Get references ----
+        // Try to get Button components directly, or from GameObjects
+        Button btnCorrect = null;
+        Button btnWrong = null;
 
-        // 4) Wait until user clicks (trigger). We accept either Select or Activate to be flexible.
-        bool clicked = false;
+        // Check if reference[0] is a Button or GameObject with Button
+        if (es.references.Count > 0)
+        {
+            if (es.references[0] is Button)
+                btnCorrect = es.references[0] as Button;
+            else if (es.references[0] is GameObject go0)
+                btnCorrect = go0.GetComponent<Button>();
+        }
 
-        void OnSelect(SelectEnterEventArgs _)  { clicked = true; }
-        void OnActivate(ActivateEventArgs   _) { clicked = true; }
+        // Check if reference[1] is a Button or GameObject with Button
+        if (es.references.Count > 1)
+        {
+            if (es.references[1] is Button)
+                btnWrong = es.references[1] as Button;
+            else if (es.references[1] is GameObject go1)
+                btnWrong = go1.GetComponent<Button>();
+        }
 
-        interactable.selectEntered.AddListener(OnSelect);
-        interactable.activated    .AddListener(OnActivate);
+        var sfxCorrect = es.GetRef<AudioClip>(2);
+        var sfxWrong   = es.GetRef<AudioClip>(3);
 
-        // Ensure target is enabled/visible while waiting
-        bool wasActive = target.activeSelf;
-        if (!wasActive) target.SetActive(true);
+        if (!btnCorrect || !btnWrong)
+        {
+            Debug.LogWarning($"[DriverMCQ] btnCorrect is null: {btnCorrect == null}");
+            Debug.LogWarning($"[DriverMCQ] btnWrong is null: {btnWrong == null}");
+            yield break;
+        }
 
-        while (!clicked)
+        // Ensure both buttons are active and interactable
+        btnCorrect.gameObject.SetActive(true);
+        btnWrong.gameObject.SetActive(true);
+        btnCorrect.interactable = true;
+        btnWrong.interactable = true;
+
+        // Get or add Image components for color changes
+        var imgParentCorrect = btnCorrect.transform.parent.GetComponent<Image>();
+        var imgCorrect = btnCorrect.GetComponent<Image>();
+        var imgWrong   = btnWrong.GetComponent<Image>();
+
+        if (!imgCorrect)
+        {
+            Debug.LogWarning("[DriverMCQ] Correct button missing Image component.");
+            yield break;
+        }
+        if (!imgWrong)
+        {
+            Debug.LogWarning("[DriverMCQ] Wrong button missing Image component.");
+            yield break;
+        }
+
+        // Target colors
+        Color wrongColor, correctColor;
+        ColorUtility.TryParseHtmlString("#F40009", out wrongColor);   // red for wrong
+        ColorUtility.TryParseHtmlString("#00FF10", out correctColor); // green for correct
+
+        // Flag to track if correct answer was selected
+        bool answeredCorrect = false;
+
+        // Button click handlers
+        void OnCorrectClick()
+        {
+            if (answeredCorrect) return; // Prevent multiple clicks
+
+            imgCorrect.color = correctColor;
+            imgParentCorrect.color = correctColor;
+            if (audioSource && sfxCorrect) 
+                audioSource.PlayOneShot(sfxCorrect);
+            
+            answeredCorrect = true;
+            
+            // Disable both buttons to prevent further clicking
+            btnCorrect.interactable = false;
+            btnWrong.interactable = false;
+        }
+
+        void OnWrongClick()
+        {
+            if (answeredCorrect) return; // Don't process if already answered correctly
+            
+            imgWrong.color = wrongColor;
+            if (audioSource && sfxWrong) 
+                audioSource.PlayOneShot(sfxWrong);
+            
+            // Keep the button red but still allow clicking correct answer
+            btnWrong.interactable = false; // Disable wrong button so it can't be clicked again
+        }
+
+        // Add listeners
+        btnCorrect.onClick.AddListener(OnCorrectClick);
+        btnWrong.onClick.AddListener(OnWrongClick);
+
+        // Wait until correct answer is selected
+        while (!answeredCorrect)
             yield return null;
 
-        // 5) Clean up: remove listeners, hide instruction canvas, disable target
-        interactable.selectEntered.RemoveListener(OnSelect);
-        interactable.activated    .RemoveListener(OnActivate);
+        // Wait 2 seconds after correct answer before concluding
+        yield return new WaitForSeconds(2f);
 
-        if (es.eventCanvasRoot) es.eventCanvasRoot.SetActive(false);
-        target.SetActive(false);
+        // Clean up listeners
+        btnCorrect.onClick.RemoveListener(OnCorrectClick);
+        btnWrong.onClick.RemoveListener(OnWrongClick);
 
-        Debug.Log("[GameManager] ClickTargetEvent: Target clicked and event completed.");
+        // Canvas stays enabled as it will be handled by the GameManager
+        Debug.Log("[DriverMCQ] Correct answer selected; event complete.");
     }
+
+    
     private IEnumerator MarshallActivityEvent(List<UnityEngine.Object> refsList)
     {
         // Ensure we have at least one reference and it is a valid GameObject
@@ -402,11 +510,11 @@ public sealed class GameManager : MonoBehaviour
         if (currentEvent != null && currentEvent.nextButton)
         {
             currentEvent.nextButton.onClick.AddListener(proceedAction);
-            
+
             // Wait until proceed is pressed
             while (!proceedPressed)
                 yield return null;
-            
+
             // Clean up listener
             currentEvent.nextButton.onClick.RemoveListener(proceedAction);
         }
@@ -632,4 +740,5 @@ public sealed class GameManager : MonoBehaviour
             }
         }
     }
+
 }

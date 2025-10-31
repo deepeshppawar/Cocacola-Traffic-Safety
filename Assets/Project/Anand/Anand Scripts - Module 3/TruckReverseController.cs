@@ -2,6 +2,7 @@
 // Unity 6000.1.12f1 – Meta Quest (OpenXR + XRI)
 // Reverse Truck + XR Origin together when pulling stick back.
 
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
@@ -43,11 +44,21 @@ public sealed class TruckReverseController : MonoBehaviour
     [SerializeField] private bool useKeyboardFallback = true; // Remove once XR input works
     [SerializeField] private bool showInputDebug = true;
 
+    [Header("Blinking Effect")]
+    [Tooltip("First GameObject to blink (will start enabled).")]
+    [SerializeField] private GameObject blinkObject1;
+    [Tooltip("Second GameObject to blink (will start disabled).")]
+    [SerializeField] private GameObject blinkObject2;
+    [Tooltip("Time in seconds between blinks.")]
+    [SerializeField] private float blinkInterval = 0.5f;
+
     // XR devices cache (legacy fallback)
     private readonly List<XRInputDevice> leftDevices  = new();
     private readonly List<XRInputDevice> rightDevices = new();
 
     private CharacterController xrCC;
+    private Coroutine blinkCoroutine;
+    private bool isBlinking = false;
 
     // NOTE: This now represents the **TOTAL** distance reversed since last reset (hard cap),
     // not "per-hold" anymore.
@@ -74,6 +85,9 @@ public sealed class TruckReverseController : MonoBehaviour
         RefreshDevices();
         InputDevices.deviceConnected    += OnDeviceChanged;
         InputDevices.deviceDisconnected += OnDeviceChanged;
+
+        // Start blinking effect
+        StartBlinking();
     }
 
 #if ENABLE_INPUT_SYSTEM
@@ -127,7 +141,10 @@ public sealed class TruckReverseController : MonoBehaviour
     {
         // HARD STOP: if we've already covered the max distance, do nothing
         if (reversedThisHold >= maxReverseDistance)
+        {
+            StopBlinking();
             return;
+        }
 
         // 1) Read intent (stick back)
         float y = ReadStickY();
@@ -178,6 +195,12 @@ public sealed class TruckReverseController : MonoBehaviour
 
         // 6) Accumulate TOTAL distance moved (do NOT reset on release)
         reversedThisHold += deltaZ;
+
+        // Check if we've reached max distance and stop blinking
+        if (reversedThisHold >= maxReverseDistance)
+        {
+            StopBlinking();
+        }
     }
 
     // ---------- INPUT ----------
@@ -222,6 +245,9 @@ public sealed class TruckReverseController : MonoBehaviour
         xrOrigin.position = initialXRPosition;
         reversedThisHold = 0f; // also unlocks the hard cap
         Debug.Log("[TruckReverseController] Truck position reset and reverse limit cleared.");
+
+        // Restart blinking when reset
+        StartBlinking();
     }
 
     // Optional utility: clear only the limit without moving objects
@@ -229,5 +255,54 @@ public sealed class TruckReverseController : MonoBehaviour
     {
         reversedThisHold = 0f;
         Debug.Log("[TruckReverseController] Reverse limit cleared (positions unchanged).");
+    }
+
+    private void StartBlinking()
+    {
+        if (blinkObject1 == null || blinkObject2 == null)
+        {
+            Debug.LogWarning("[TruckReverseController] Blink objects not assigned. Blinking disabled.");
+            return;
+        }
+
+        if (!isBlinking)
+        {
+            isBlinking = true;
+            // Initialize: object1 enabled, object2 disabled
+            blinkObject1.SetActive(true);
+            blinkObject2.SetActive(false);
+            blinkCoroutine = StartCoroutine(BlinkCoroutine());
+        }
+    }
+
+    private void StopBlinking()
+    {
+        if (isBlinking)
+        {
+            isBlinking = false;
+            if (blinkCoroutine != null)
+            {
+                StopCoroutine(blinkCoroutine);
+                blinkCoroutine = null;
+            }
+            // Optional: set final state of blink objects
+            if (blinkObject1 != null) blinkObject1.SetActive(true);
+            if (blinkObject2 != null) blinkObject2.SetActive(false);
+        }
+    }
+
+    private IEnumerator BlinkCoroutine()
+    {
+        while (isBlinking && reversedThisHold < maxReverseDistance)
+        {
+            yield return new WaitForSeconds(blinkInterval);
+            
+            if (!isBlinking) break;
+            
+            // Toggle the objects
+            bool obj1Active = blinkObject1.activeSelf;
+            blinkObject1.SetActive(!obj1Active);
+            blinkObject2.SetActive(obj1Active);
+        }
     }
 }
