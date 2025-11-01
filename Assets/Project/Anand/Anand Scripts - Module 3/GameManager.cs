@@ -250,9 +250,9 @@ public sealed class GameManager : MonoBehaviour
             // Call the MarshallSpawn method and pass references
             yield return StartCoroutine(MarshallSpawnEvent(es.references));
         }
-        else if (es.actionName == "TruckReverseEvent")
+        else if (es.actionName == "TruckReverse")
         {
-            // Call the TruckReverseEvent method and pass references
+            // Call the TruckReverse method and pass references
             yield return StartCoroutine(TruckReverseEvent(es.references));
         }
         else if (es.actionName == "BlinkHighlight")
@@ -525,41 +525,6 @@ public sealed class GameManager : MonoBehaviour
         }
     }
 
-    private IEnumerator TruckReverseEvent(List<UnityEngine.Object> refsList)
-    {
-        // Ensure we have the XR Rig and Truck GameObject references
-        GameObject truck = refsList[0] as GameObject;
-        XROrigin xrRig = refsList[1] as XROrigin;
-
-        if (truck == null || xrRig == null)
-        {
-            Debug.LogWarning("[GameManager] TruckReverseEvent: Missing references.");
-            yield break;
-        }
-
-        // Define the target position for the reverse
-        float reverseDistance = 30f; // how much to move (in the Z axis)
-        float speed = 3f; // speed at which both will reverse
-        float targetTruckZ = truck.transform.position.z - reverseDistance;
-        float targetXRZ = xrRig.transform.position.z - reverseDistance;
-
-        // Move the truck and XR Rig simultaneously
-        while (truck.transform.position.z > targetTruckZ && xrRig.transform.position.z > targetXRZ)
-        {
-            float step = speed * Time.deltaTime; // calculate the movement step based on time
-
-            truck.transform.position = new Vector3(truck.transform.position.x, truck.transform.position.y, truck.transform.position.z - step);
-            xrRig.transform.position = new Vector3(xrRig.transform.position.x, xrRig.transform.position.y, xrRig.transform.position.z - step);
-
-            yield return null; // Wait for the next frame
-        }
-
-        // Ensure they both stop at the exact target
-        truck.transform.position = new Vector3(truck.transform.position.x, truck.transform.position.y, targetTruckZ);
-        xrRig.transform.position = new Vector3(xrRig.transform.position.x, xrRig.transform.position.y, targetXRZ);
-
-        Debug.Log("[GameManager] TruckReverseEvent: Reversal complete.");
-    }
 
     private IEnumerator BlinkHighlightEvent(EventStep es, float intervalSeconds = 0.5f)
     {
@@ -739,6 +704,63 @@ public sealed class GameManager : MonoBehaviour
                 if (s.ev.nextButton) s.ev.nextButton.onClick.RemoveAllListeners();
             }
         }
+    }
+
+    private IEnumerator TruckReverseEvent(List<UnityEngine.Object> refsList)
+    {
+        // Ensure we have the TruckReverseController GameObject reference
+        if (refsList.Count == 0 || !(refsList[0] is GameObject truckControllerGO))
+        {
+            Debug.LogWarning("[GameManager] TruckReverse: Missing or invalid TruckReverseController GameObject reference.");
+            yield break;
+        }
+
+        // Get the TruckReverseController component
+        TruckReverseController truckController = truckControllerGO.GetComponent<TruckReverseController>();
+        if (truckController == null)
+        {
+            Debug.LogWarning("[GameManager] TruckReverse: TruckReverseController component not found on GameObject.");
+            yield break;
+        }
+
+        // Enable the GameObject to activate the TruckReverseController
+        truckControllerGO.SetActive(true);
+        Debug.Log("[GameManager] TruckReverse: TruckReverseController enabled and started.");
+
+        // Monitor the controller until maxReverseDistance is reached
+        // We'll use reflection to access the private reversedThisHold field
+        System.Reflection.FieldInfo reversedField = typeof(TruckReverseController)
+            .GetField("reversedThisHold", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        
+        System.Reflection.FieldInfo maxDistanceField = typeof(TruckReverseController)
+            .GetField("maxReverseDistance", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        if (reversedField == null || maxDistanceField == null)
+        {
+            Debug.LogWarning("[GameManager] TruckReverse: Could not access TruckReverseController fields via reflection.");
+            yield break;
+        }
+
+        // Wait until the truck has reached its maximum reverse distance
+        while (truckControllerGO.activeInHierarchy)
+        {
+            float reversedDistance = (float)reversedField.GetValue(truckController);
+            float maxDistance = (float)maxDistanceField.GetValue(truckController);
+
+            // Check if max distance is reached
+            if (reversedDistance >= maxDistance)
+            {
+                Debug.Log("[GameManager] TruckReverse: Maximum reverse distance reached. Event complete.");
+                break;
+            }
+
+            yield return null; // Wait one frame
+        }
+
+        // Optional: Keep the controller active or disable it based on your needs
+        // truckControllerGO.SetActive(false); // Uncomment if you want to disable after completion
+
+        Debug.Log("[GameManager] TruckReverse: Event completed successfully.");
     }
 
 }

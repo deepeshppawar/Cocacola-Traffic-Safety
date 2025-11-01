@@ -20,6 +20,7 @@ public sealed class TruckReverseController : MonoBehaviour
     [Header("References (assign these)")]
     [SerializeField] private Transform truck;        // Truck root to move
     [SerializeField] private Transform xrOrigin;     // XR Origin root
+    [SerializeField] private Transform canvas;       // Canvas to move with truck
 
     [Header("Motion")]
     [Tooltip("Speed in meters/sec (reverse).")]
@@ -64,8 +65,14 @@ public sealed class TruckReverseController : MonoBehaviour
     // not "per-hold" anymore.
     private float reversedThisHold = 0f;
 
+    // Public property to allow external monitoring of reverse progress
+    public float ReversedDistance => reversedThisHold;
+    public float MaxReverseDistance => maxReverseDistance;
+    public bool IsMaxDistanceReached => reversedThisHold >= maxReverseDistance;
+
     private Vector3 initialTruckPosition;
     private Vector3 initialXRPosition;
+    private Vector3 initialCanvasPosition;
 
     private void Awake()
     {
@@ -81,6 +88,8 @@ public sealed class TruckReverseController : MonoBehaviour
         // Store initial positions
         initialTruckPosition = truck.position;
         initialXRPosition = xrOrigin.position;
+        if (canvas != null)
+            initialCanvasPosition = canvas.position;
 
         RefreshDevices();
         InputDevices.deviceConnected    += OnDeviceChanged;
@@ -181,7 +190,15 @@ public sealed class TruckReverseController : MonoBehaviour
         newTruckPos.z += deltaZ;
         truck.position = newTruckPos;
 
-        // 5) Move XR Origin to maintain relative position
+        // 5) Move canvas along with truck (if assigned)
+        if (canvas != null)
+        {
+            Vector3 newCanvasPos = canvas.position;
+            newCanvasPos.z += deltaZ;
+            canvas.position = newCanvasPos;
+        }
+
+        // 6) Move XR Origin to maintain relative position
         if (xrCC != null && xrCC.enabled)
         {
             xrCC.Move(new Vector3(0f, 0f, deltaZ));
@@ -193,7 +210,7 @@ public sealed class TruckReverseController : MonoBehaviour
             xrOrigin.position = newXRPos;
         }
 
-        // 6) Accumulate TOTAL distance moved (do NOT reset on release)
+        // 7) Accumulate TOTAL distance moved (do NOT reset on release)
         reversedThisHold += deltaZ;
 
         // Check if we've reached max distance and stop blinking
@@ -243,6 +260,8 @@ public sealed class TruckReverseController : MonoBehaviour
     {
         truck.position = initialTruckPosition;
         xrOrigin.position = initialXRPosition;
+        if (canvas != null)
+            canvas.position = initialCanvasPosition;
         reversedThisHold = 0f; // also unlocks the hard cap
         Debug.Log("[TruckReverseController] Truck position reset and reverse limit cleared.");
 
