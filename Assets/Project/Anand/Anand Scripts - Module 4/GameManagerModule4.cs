@@ -261,6 +261,16 @@ public sealed class GameManagerModule4 : MonoBehaviour
             // Call the KeyEvent method and pass references
             yield return StartCoroutine(KeyEvent(es));
         }
+        else if (es.actionName == "SeatBelt")
+        {
+            // Call the SeatBelt method and pass references
+            yield return StartCoroutine(SeatBeltEvent(es));
+        }
+        else if (es.actionName == "3PointContact")
+        {
+            // Call the 3PointContact method and pass references
+            yield return StartCoroutine(ThreePointContactEvent(es));
+        }
         else if (es.actionName == "ClickButton")
         {
             // Call the ClickButton method and pass references
@@ -567,7 +577,7 @@ public sealed class GameManagerModule4 : MonoBehaviour
         // Start rotation using DOTween (35 degrees on Z-axis)
         bool rotationComplete = false;
         rotationObject.transform.DORotate(
-            new Vector3(0, 0, 35f),
+            new Vector3(0, 35f, 0),
             1f, // Duration in seconds
             RotateMode.LocalAxisAdd
         ).OnComplete(() =>
@@ -600,13 +610,13 @@ public sealed class GameManagerModule4 : MonoBehaviour
         var blinkObject2 = es.GetRef<GameObject>(1);
         
         // Handle button reference - could be Button component or GameObject with Button
-        Button handBrakeButton = null;
+        Button keyButton = null;
         if (es.references.Count > 2)
         {
             if (es.references[2] is Button)
-                handBrakeButton = es.references[2] as Button;
+                keyButton = es.references[2] as Button;
             else if (es.references[2] is GameObject buttonGO)
-                handBrakeButton = buttonGO.GetComponent<Button>();
+                keyButton = buttonGO.GetComponent<Button>();
         }
 
         var removalObject = es.GetRef<GameObject>(3);
@@ -614,19 +624,19 @@ public sealed class GameManagerModule4 : MonoBehaviour
         // Validate references
         if (!blinkObject1 || !blinkObject2)
         {
-            Debug.LogWarning("[GameManager] HandBrake: Missing blink GameObjects (need two).");
+            Debug.LogWarning("[GameManager] KeyEvent: Missing blink GameObjects (need two).");
             yield break;
         }
 
-        if (!handBrakeButton)
+        if (!keyButton)
         {
-            Debug.LogWarning("[GameManager] HandBrake: Missing handbrake Button component. Make sure reference[2] is a Button component or GameObject with Button component.");
+            Debug.LogWarning("[GameManager] KeyEvent: Missing key Button component. Make sure reference[2] is a Button component or GameObject with Button component.");
             yield break;
         }
 
         if (!removalObject)
         {
-            Debug.LogWarning("[GameManager] HandBrake: Missing removal GameObject reference.");
+            Debug.LogWarning("[GameManager] KeyEvent: Missing removal GameObject reference.");
             yield break;
         }
 
@@ -635,7 +645,7 @@ public sealed class GameManagerModule4 : MonoBehaviour
         UnityEngine.Events.UnityAction buttonAction = () => { buttonPressed = true; };
 
         // Add button listener
-        handBrakeButton.onClick.AddListener(buttonAction);
+        keyButton.onClick.AddListener(buttonAction);
 
         // Initialize blinking - start with object1 enabled, object2 disabled
         blinkObject1.SetActive(true);
@@ -646,7 +656,7 @@ public sealed class GameManagerModule4 : MonoBehaviour
         float timer = 0f;
         bool showFirstObject = true;
 
-        Debug.Log("[GameManager] HandBrake: Starting blinking effect. Waiting for button press.");
+        Debug.Log("[GameManager] KeyEvent: Starting blinking effect. Waiting for button press.");
 
         // Blinking loop - continues until button is pressed
         while (!buttonPressed)
@@ -662,26 +672,26 @@ public sealed class GameManagerModule4 : MonoBehaviour
                 blinkObject1.SetActive(showFirstObject);
                 blinkObject2.SetActive(!showFirstObject);
                 
-                Debug.Log($"[GameManager] HandBrake: Toggled - Object1: {showFirstObject}, Object2: {!showFirstObject}");
+                Debug.Log($"[GameManager] KeyEvent: Toggled - Object1: {showFirstObject}, Object2: {!showFirstObject}");
             }
             
             yield return null;
         }
 
-        // Button was pressed - stop blinking and set both objects active
+        // Button was pressed - stop blinking and set both objects inactive
         blinkObject1.SetActive(false);
         blinkObject2.SetActive(false);
-        handBrakeButton.gameObject.SetActive(false); // Optionally hide the button after press
+        keyButton.gameObject.SetActive(false); // Optionally hide the button after press
         
-        Debug.Log("[GameManager] HandBrake: Button pressed. Both objects activated. Starting rotation.");
+        Debug.Log("[GameManager] KeyEvent: Button pressed. Both objects deactivated. Starting removal.");
 
-        // Start removal using DOTween (drag the gameobject in the Z axis)
+        // Start removal using DOTween (move the gameobject in the Z axis)
         bool removalComplete = false;
         removalObject.transform.DOMoveZ(removalObject.transform.position.z + 0.2f, 2f)
         .OnComplete(() =>
         {
             removalComplete = true;
-            Debug.Log("[GameManager] HandBrake: Removal completed.");
+            Debug.Log("[GameManager] KeyEvent: Removal completed.");
         });
 
         // Wait for removal to complete
@@ -691,9 +701,263 @@ public sealed class GameManagerModule4 : MonoBehaviour
         }
 
         // Clean up button listener
-        handBrakeButton.onClick.RemoveListener(buttonAction);
+        keyButton.onClick.RemoveListener(buttonAction);
 
-        Debug.Log("[GameManager] HandBrake: Event completed successfully.");
+        Debug.Log("[GameManager] KeyEvent: Event completed successfully.");
+    }
+
+    private IEnumerator SeatBeltEvent(EventStep es)
+    {
+        if (es == null) yield break;
+
+        // Ensure the event canvas is visible for the whole event
+        if (es.eventCanvasRoot) es.eventCanvasRoot.SetActive(true);
+
+        // Get references from the event
+        var blinkObject1 = es.GetRef<GameObject>(0);
+        var blinkObject2 = es.GetRef<GameObject>(1);
+        
+        // Handle button reference - could be Button component or GameObject with Button
+        Button seatBeltButton = null;
+        if (es.references.Count > 2)
+        {
+            if (es.references[2] is Button)
+                seatBeltButton = es.references[2] as Button;
+            else if (es.references[2] is GameObject buttonGO)
+                seatBeltButton = buttonGO.GetComponent<Button>();
+        }
+
+        var objectToDisable = es.GetRef<GameObject>(3);
+        var objectToEnable = es.GetRef<GameObject>(4);
+
+        // Validate references
+        if (!blinkObject1 || !blinkObject2)
+        {
+            Debug.LogWarning("[GameManager] SeatBelt: Missing blink GameObjects (need two).");
+            yield break;
+        }
+
+        if (!seatBeltButton)
+        {
+            Debug.LogWarning("[GameManager] SeatBelt: Missing seatbelt Button component. Make sure reference[2] is a Button component or GameObject with Button component.");
+            yield break;
+        }
+
+        if (!objectToDisable)
+        {
+            Debug.LogWarning("[GameManager] SeatBelt: Missing object to disable GameObject reference.");
+            yield break;
+        }
+
+        if (!objectToEnable)
+        {
+            Debug.LogWarning("[GameManager] SeatBelt: Missing object to enable GameObject reference.");
+            yield break;
+        }
+
+        // Flag to track when button is pressed
+        bool buttonPressed = false;
+        UnityEngine.Events.UnityAction buttonAction = () => { buttonPressed = true; };
+
+        // Add button listener
+        seatBeltButton.onClick.AddListener(buttonAction);
+
+        // Initialize blinking - start with object1 enabled, object2 disabled
+        blinkObject1.SetActive(true);
+        blinkObject2.SetActive(false);
+
+        // Blinking parameters
+        float blinkInterval = 0.5f;
+        float timer = 0f;
+        bool showFirstObject = true;
+
+        Debug.Log("[GameManager] SeatBelt: Starting blinking effect. Waiting for button press.");
+
+        // Blinking loop - continues until button is pressed
+        while (!buttonPressed)
+        {
+            timer += Time.deltaTime;
+            
+            if (timer >= blinkInterval)
+            {
+                timer = 0f;
+                showFirstObject = !showFirstObject;
+                
+                // Set the objects based on current state
+                blinkObject1.SetActive(showFirstObject);
+                blinkObject2.SetActive(!showFirstObject);
+                
+                Debug.Log($"[GameManager] SeatBelt: Toggled - Object1: {showFirstObject}, Object2: {!showFirstObject}");
+            }
+            
+            yield return null;
+        }
+
+        // Button was pressed - stop blinking and disable/enable objects
+        blinkObject1.SetActive(false);
+        blinkObject2.SetActive(false);
+        seatBeltButton.gameObject.SetActive(false); // Optionally hide the button after press
+        
+        Debug.Log("[GameManager] SeatBelt: Button pressed. Disabling and enabling objects.");
+
+        // Disable one object and enable another
+        objectToDisable.SetActive(false);
+        objectToEnable.SetActive(true);
+
+        Debug.Log("[GameManager] SeatBelt: Objects switched successfully.");
+
+        // Clean up button listener
+        seatBeltButton.onClick.RemoveListener(buttonAction);
+
+        Debug.Log("[GameManager] SeatBelt: Event completed successfully.");
+    }
+
+    private IEnumerator ThreePointContactEvent(EventStep es)
+    {
+        if (es == null) yield break;
+
+        // Ensure the event canvas is visible for the whole event
+        if (es.eventCanvasRoot) es.eventCanvasRoot.SetActive(true);
+
+        // Get door reference
+        var doorObject = es.GetRef<GameObject>(0);
+
+        // Get button references
+        Button[] buttons = new Button[3];
+        for (int i = 0; i < 3; i++)
+        {
+            int buttonRefIndex = 1 + (i * 4); // 1, 5, 9
+            if (es.references[buttonRefIndex] is Button)
+                buttons[i] = es.references[buttonRefIndex] as Button;
+            else if (es.references[buttonRefIndex] is GameObject buttonGO)
+                buttons[i] = buttonGO.GetComponent<Button>();
+        }
+
+        // Get blink objects and success objects for each button
+        GameObject[] blinkObj1 = new GameObject[3];
+        GameObject[] blinkObj2 = new GameObject[3];
+        GameObject[] successObj = new GameObject[3];
+
+        for (int i = 0; i < 3; i++)
+        {
+            int baseIndex = 2 + (i * 4); // 2, 6, 10
+            blinkObj1[i] = es.GetRef<GameObject>(baseIndex);     // 2, 6, 10
+            blinkObj2[i] = es.GetRef<GameObject>(baseIndex + 1); // 3, 7, 11
+            successObj[i] = es.GetRef<GameObject>(baseIndex + 2); // 4, 8, 12
+        }
+
+        // Validate references
+        if (!doorObject)
+        {
+            Debug.LogWarning("[GameManager] 3PointContact: Missing door GameObject reference.");
+            yield break;
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            if (!buttons[i] || !blinkObj1[i] || !blinkObj2[i] || !successObj[i])
+            {
+                Debug.LogWarning($"[GameManager] 3PointContact: Missing references for button {i + 1}.");
+                yield break;
+            }
+        }
+
+        // CHANGE 1: Hide all elements initially
+        for (int i = 0; i < 3; i++)
+        {
+            buttons[i].gameObject.SetActive(false);
+            blinkObj1[i].SetActive(false);
+            blinkObj2[i].SetActive(false);
+            successObj[i].SetActive(false);
+        }
+
+        Debug.Log("[GameManager] 3PointContact: Starting door rotation.");
+
+        // Step 1: Rotate door by -45 degrees on Y axis
+        bool doorRotationComplete = false;
+        doorObject.transform.DORotate(
+            new Vector3(0, 45f, 0),
+            2f, // Duration in seconds
+            RotateMode.LocalAxisAdd
+        ).OnComplete(() => {
+            doorRotationComplete = true;
+            Debug.Log("[GameManager] 3PointContact: Door rotation completed.");
+        });
+
+        // Wait for door rotation to complete
+        while (!doorRotationComplete)
+        {
+            yield return null;
+        }
+
+        Debug.Log("[GameManager] 3PointContact: Starting button interaction phase.");
+
+        // Step 2: Setup buttons and blinking (CHANGE 1: Show elements after door opens)
+        bool[] buttonClicked = new bool[3];
+        bool[] showFirstObject = new bool[3];
+        float[] timers = new float[3];
+        float blinkInterval = 0.5f;
+
+        // Initialize all buttons and blink objects (show them after door rotation)
+        for (int i = 0; i < 3; i++)
+        {
+            buttons[i].gameObject.SetActive(true);
+            blinkObj1[i].SetActive(true);
+            blinkObj2[i].SetActive(false);
+            successObj[i].SetActive(false);
+            showFirstObject[i] = true;
+            
+            // Add button listeners
+            int buttonIndex = i; // Capture for closure
+            buttons[i].onClick.AddListener(() => {
+                if (!buttonClicked[buttonIndex])
+                {
+                    buttonClicked[buttonIndex] = true;
+                    
+                    // Stop blinking and show success object
+                    blinkObj1[buttonIndex].SetActive(false);
+                    blinkObj2[buttonIndex].SetActive(false);
+                    successObj[buttonIndex].SetActive(true);
+                    
+                    // CHANGE 2: Removed button color change to green
+                    
+                    Debug.Log($"[GameManager] 3PointContact: Button {buttonIndex + 1} clicked successfully.");
+                }
+            });
+        }
+
+        // Step 3: Blinking loop until all buttons are clicked
+        while (!buttonClicked[0] || !buttonClicked[1] || !buttonClicked[2])
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (!buttonClicked[i])
+                {
+                    timers[i] += Time.deltaTime;
+                    
+                    if (timers[i] >= blinkInterval)
+                    {
+                        timers[i] = 0f;
+                        showFirstObject[i] = !showFirstObject[i];
+                        
+                        blinkObj1[i].SetActive(showFirstObject[i]);
+                        blinkObj2[i].SetActive(!showFirstObject[i]);
+                    }
+                }
+            }
+            
+            yield return null;
+        }
+
+        Debug.Log("[GameManager] 3PointContact: All buttons clicked. Event completing.");
+
+        // Clean up button listeners
+        for (int i = 0; i < 3; i++)
+        {
+            buttons[i].onClick.RemoveAllListeners();
+        }
+
+        Debug.Log("[GameManager] 3PointContact: Event completed successfully.");
     }
 
     private IEnumerator PlaceholderEventRoutine(string actionName, List<UnityEngine.Object> refsList)
