@@ -1,0 +1,252 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7572571523689982375
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4561351061594076735}
+  - component: {fileID: 5368390341333240052}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4561351061594076735
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7572571523689982375}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 10.59803, y: 0.0308, z: 18.44022}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5368390341333240052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7572571523689982375}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5953c1903e5b3b45aa2f4fe223b1ef6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  xrOrigin: {fileID: 0}
+  audioSource: {fileID: 0}
+  steps:
+  - type: 0
+    label: 'Module 4 Intro '
+    canvas:
+      canvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+    ev:
+      actionName: 
+      eventCanvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+      references: []
+  - type: 0
+    label: Procedure Part 1
+    canvas:
+      canvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+    ev:
+      actionName: 
+      eventCanvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+      references: []
+  - type: 1
+    label: Hand Brake
+    canvas:
+      canvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+    ev:
+      actionName: HandBrake
+      eventCanvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+      references:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+  - type: 1
+    label: Key Removal
+    canvas:
+      canvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+    ev:
+      actionName: KeyEvent
+      eventCanvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+      references:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+  - type: 1
+    label: SeatBelt
+    canvas:
+      canvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+    ev:
+      actionName: SeatBelt
+      eventCanvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+      references:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+  - type: 0
+    label: Disembark
+    canvas:
+      canvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+    ev:
+      actionName: 
+      eventCanvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+      references: []
+  - type: 0
+    label: 'Disembark Img '
+    canvas:
+      canvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+    ev:
+      actionName: 
+      eventCanvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+      references: []
+  - type: 1
+    label: 3PointContact
+    canvas:
+      canvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+    ev:
+      actionName: 3PointContact
+      eventCanvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+      references:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+  - type: 0
+    label: Disembark Done
+    canvas:
+      canvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+    ev:
+      actionName: 
+      eventCanvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+      references: []
+  - type: 0
+    label: Do Not Jump
+    canvas:
+      canvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+    ev:
+      actionName: 
+      eventCanvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+      references: []
+  - type: 0
+    label: 'Khatam '
+    canvas:
+      canvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+    ev:
+      actionName: 
+      eventCanvasRoot: {fileID: 0}
+      audio: {fileID: 0}
+      teleportAnchor: {fileID: 0}
+      backButton: {fileID: 0}
+      nextButton: {fileID: 0}
+      references: []
+  autoStart: 1
