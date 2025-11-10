@@ -13,7 +13,7 @@ public sealed class SceneStepManager : MonoBehaviour
     {
         [Tooltip("Main canvas for this step")]
         public GameObject canvas;
-        
+
         public List<Button> proceedButtons = new();
 
         [Header("MCQ Options")]
@@ -22,7 +22,7 @@ public sealed class SceneStepManager : MonoBehaviour
         public Button correctMCQButton;
         [Tooltip("Result canvas for each button, same index as mcqButtons")]
         public List<GameObject> mcqResultCanvases;
-        
+
 
         [Header("Teleport Options")]
         public bool teleportPlayer = false;
@@ -43,6 +43,11 @@ public sealed class SceneStepManager : MonoBehaviour
 
         [Tooltip("Optional button to proceed after interacting within this step")]
         public Button specialProceedButton;
+
+        [Header("Ring Selection Step")]
+        public bool isRingSelectionStep = false;
+        public List<Button> ringButtons = new();
+
     }
 
     [Header("Player Rig")]
@@ -77,6 +82,14 @@ public sealed class SceneStepManager : MonoBehaviour
                 foreach (var mcqBtn in step.mcqButtons)
                     if (mcqBtn != null) mcqBtn.onClick.AddListener(() => OnMCQButtonClicked(mcqBtn));
             }
+            // Ring selection setup
+            if (step.isRingSelectionStep && step.ringButtons != null)
+            {
+                foreach (var ringBtn in step.ringButtons)
+                    if (ringBtn != null)
+                        ringBtn.onClick.AddListener(() => OnRingClicked(capturedIndex, ringBtn));
+            }
+
         }
     }
 
@@ -247,6 +260,45 @@ public sealed class SceneStepManager : MonoBehaviour
         StartCoroutine(ShowResultCanvasAfterDelay(step, clickedButton, 0.5f));
     }
 
+    private void OnRingClicked(int stepIndex, Button clickedButton)
+{
+    var step = steps[stepIndex];
+    if (!step.isRingSelectionStep) return;
+
+    // 🟡 Find the 3D ring mesh (child with MeshRenderer)
+    MeshRenderer ringRenderer = clickedButton.GetComponentInChildren<MeshRenderer>(true);
+    if (ringRenderer != null)
+    {
+        // Clone material instance so it doesn't affect others
+        var mat = ringRenderer.material;
+        mat.color = Color.green;
+        ringRenderer.material = mat;
+    }
+
+    // Disable further clicks
+    clickedButton.interactable = false;
+
+    // 🟢 Check if all rings are clicked
+    bool allClicked = true;
+    foreach (var btn in step.ringButtons)
+    {
+        if (btn == null) continue;
+        if (btn.interactable)
+        {
+            allClicked = false;
+            break;
+        }
+    }
+
+    // Proceed to next step once all are green
+    if (allClicked)
+    {
+        OnStepProceed(stepIndex);
+    }
+}
+
+
+
     private System.Collections.IEnumerator ShowResultCanvasAfterDelay(SceneStep step, Button clickedButton, float delay)
     {
         yield return new WaitForSeconds(delay);
@@ -274,3 +326,4 @@ public sealed class SceneStepManager : MonoBehaviour
         }
     }
 }
+
