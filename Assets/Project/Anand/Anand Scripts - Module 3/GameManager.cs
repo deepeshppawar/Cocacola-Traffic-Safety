@@ -15,7 +15,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables; // Add this line for XRB
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.Animations; // Add this line for XRRayInteractor
 
-public sealed class GameManager : MonoBehaviour
+public sealed class GameManagera : MonoBehaviour
 {
     // -----------------------------
     // Types
