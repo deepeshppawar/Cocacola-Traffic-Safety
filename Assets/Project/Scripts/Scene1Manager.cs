@@ -73,9 +73,9 @@ public sealed class Scene1Manager : MonoBehaviour
     [Serializable]
     private sealed class TargetClickEntry
     {
-        public GameObject targetObject;      // will be SetActive(false) upon its button click
-        public Button clickButton;           // assign the adjacent UI button
-        public GameObject clickButtonParent;   // optional: parent GO to disable/hide on click
+        public GameObject targetObject;        // SetActive(false) upon its button click
+        public Button clickButton;             // assign the adjacent UI button
+        public GameObject clickButtonParent;   // optional: parent to hide after click
         [HideInInspector] public bool clicked;
     }
 
@@ -96,22 +96,42 @@ public sealed class Scene1Manager : MonoBehaviour
     [SerializeField] private Button i5CompleteProceedButton;
 
     // -----------------------------
-    // Interaction 6 (Single-script version: intro -> completion)
+    // Interaction 6: Truck Inspection Checklist (with Intro + per-canvas Check + Completion)
+    // Each step has a teleport point and an ordered list of canvas entries.
+    // Every canvas entry contains (Canvas GO, Check Button) that advances.
     // -----------------------------
-    [Header("Interaction 6 - Intro & Completion")]
+    [Serializable]
+    private sealed class I6CanvasEntry
+    {
+        public GameObject canvas;   // shown when this entry is active
+        public Button checkButton;  // pressed to advance to next canvas / next step
+    }
+
+    [Serializable]
+    private sealed class I6Step
+    {
+        public Transform teleportPoint;
+        public List<I6CanvasEntry> entries = new List<I6CanvasEntry>(); // ordered canvases with their own buttons
+    }
+
+    [Header("Interaction 6 - Intro / Steps / Completion")]
     [SerializeField] private GameObject i6IntroCanvas;
     [SerializeField] private Button i6IntroProceedButton;
+
+    [SerializeField] private List<I6Step> i6Steps = new List<I6Step>();
+    [SerializeField] private Transform i6CompletionTeleportPoint;
     [SerializeField] private GameObject i6CompletionCanvas;
     [SerializeField] private Button i6CompletionProceedButton;
 
+    private int _i6StepIndex = -1;
+    private int _i6EntryIndex = -1;
+
     // -----------------------------
-    // Interaction 7 (Single-script version: intro -> completion -> Load Scene)
+    // Interaction 7: Entry Clearance (show completion canvas -> open gate -> load next scene)
     // -----------------------------
-    [Header("Interaction 7 - Intro, Completion & Load Next Scene")]
-    [SerializeField] private GameObject i7IntroCanvas;
-    [SerializeField] private Button i7IntroProceedButton;
-    [SerializeField] private GameObject i7CompletionCanvas;
-    [SerializeField] private Button i7CompletionProceedButton;
+    [Header("Interaction 7 - Completion & Next Scene")]
+    [SerializeField] private GameObject i7CompletionCanvas;       // single completion/cutscene canvas
+    [SerializeField] private Button i7CompletionProceedButton;    // triggers OpenGate() + scene load
     [SerializeField] private string nextSceneName = "Scene2";      // set exact scene name
 
     // Runtime
@@ -119,24 +139,24 @@ public sealed class Scene1Manager : MonoBehaviour
 
     private void Awake()
     {
-        // Wire all button listeners
+        // Wire all static button listeners
         if (welcomeProceedButton)               welcomeProceedButton.onClick.AddListener(OnWelcomeProceed);
-        if (moduleIntroProceedButton)          moduleIntroProceedButton.onClick.AddListener(OnModuleIntroProceed);
+        if (moduleIntroProceedButton)           moduleIntroProceedButton.onClick.AddListener(OnModuleIntroProceed);
 
-        if (i1GreetingProceedAButton)          i1GreetingProceedAButton.onClick.AddListener(OnI1GreetingAProceed);
-        if (i1GreetingProceedBButton)          i1GreetingProceedBButton.onClick.AddListener(OnI1GreetingBProceed);
+        if (i1GreetingProceedAButton)           i1GreetingProceedAButton.onClick.AddListener(OnI1GreetingAProceed);
+        if (i1GreetingProceedBButton)           i1GreetingProceedBButton.onClick.AddListener(OnI1GreetingBProceed);
 
-        if (i2SubmitButton)                    i2SubmitButton.onClick.AddListener(OnI2SubmitDocuments);
-        if (i2SubmitCompleteProceedButton)     i2SubmitCompleteProceedButton.onClick.AddListener(ShowI2Awareness);
-        if (i2AwarenessProceedButton)          i2AwarenessProceedButton.onClick.AddListener(OnI2AwarenessProceed);
+        if (i2SubmitButton)                     i2SubmitButton.onClick.AddListener(OnI2SubmitDocuments);
+        if (i2SubmitCompleteProceedButton)      i2SubmitCompleteProceedButton.onClick.AddListener(ShowI2Awareness);
+        if (i2AwarenessProceedButton)           i2AwarenessProceedButton.onClick.AddListener(OnI2AwarenessProceed);
 
-        if (i3IntroProceedButton)              i3IntroProceedButton.onClick.AddListener(OnI3IntroProceed);
-        if (i3DuringTestProceedButton)         i3DuringTestProceedButton.onClick.AddListener(OnI3DuringTestProceed);
-        if (i3SuccessProceedButton)            i3SuccessProceedButton.onClick.AddListener(OnI3SuccessProceed);
+        if (i3IntroProceedButton)               i3IntroProceedButton.onClick.AddListener(OnI3IntroProceed);
+        if (i3DuringTestProceedButton)          i3DuringTestProceedButton.onClick.AddListener(OnI3DuringTestProceed);
+        if (i3SuccessProceedButton)             i3SuccessProceedButton.onClick.AddListener(OnI3SuccessProceed);
 
-        if (i4CompleteProceedButton)           i4CompleteProceedButton.onClick.AddListener(StartInteraction5);
-        if (i5CollectButton)                   i5CollectButton.onClick.AddListener(OnI5Collect);
-        if (i5CompleteProceedButton)           i5CompleteProceedButton.onClick.AddListener(StartInteraction6);
+        if (i4CompleteProceedButton)            i4CompleteProceedButton.onClick.AddListener(StartInteraction5);
+        if (i5CollectButton)                    i5CollectButton.onClick.AddListener(OnI5Collect);
+        if (i5CompleteProceedButton)            i5CompleteProceedButton.onClick.AddListener(StartInteraction6);
 
         // i4 dynamic buttons
         foreach (var entry in i4Targets)
@@ -146,34 +166,40 @@ public sealed class Scene1Manager : MonoBehaviour
             entry.clickButton.onClick.AddListener(() => OnI4ClickEntry(entry));
         }
 
-        // Interaction 6 and 7 buttons
-        if (i6IntroProceedButton)              i6IntroProceedButton.onClick.AddListener(OnI6IntroProceed);
-        if (i6CompletionProceedButton)         i6CompletionProceedButton.onClick.AddListener(StartInteraction7);
+        // I6 per-canvas Check buttons (dynamic wiring)
+        WireI6Buttons(true);
 
-        if (i7IntroProceedButton)              i7IntroProceedButton.onClick.AddListener(OnI7IntroProceed);
-        if (i7CompletionProceedButton)         i7CompletionProceedButton.onClick.AddListener(LoadNextScene);
+        // I6 intro/completion
+        if (i6IntroProceedButton)               i6IntroProceedButton.onClick.AddListener(OnI6IntroProceed);
+        if (i6CompletionProceedButton)          i6CompletionProceedButton.onClick.AddListener(StartInteraction7);
+
+        // I7 proceed
+        if (i7CompletionProceedButton) i7CompletionProceedButton.onClick.AddListener(OnI7Proceed);
+        
+        //All Canvas Set Active false
+        HideAll();
     }
 
     private void OnDestroy()
     {
-        // Clean up to avoid memory leaks
+        // Remove listeners to avoid leaks
         if (welcomeProceedButton)               welcomeProceedButton.onClick.RemoveListener(OnWelcomeProceed);
-        if (moduleIntroProceedButton)          moduleIntroProceedButton.onClick.RemoveListener(OnModuleIntroProceed);
+        if (moduleIntroProceedButton)           moduleIntroProceedButton.onClick.RemoveListener(OnModuleIntroProceed);
 
-        if (i1GreetingProceedAButton)          i1GreetingProceedAButton.onClick.RemoveListener(OnI1GreetingAProceed);
-        if (i1GreetingProceedBButton)          i1GreetingProceedBButton.onClick.RemoveListener(OnI1GreetingBProceed);
+        if (i1GreetingProceedAButton)           i1GreetingProceedAButton.onClick.RemoveListener(OnI1GreetingAProceed);
+        if (i1GreetingProceedBButton)           i1GreetingProceedBButton.onClick.RemoveListener(OnI1GreetingBProceed);
 
-        if (i2SubmitButton)                    i2SubmitButton.onClick.RemoveListener(OnI2SubmitDocuments);
-        if (i2SubmitCompleteProceedButton)     i2SubmitCompleteProceedButton.onClick.RemoveListener(ShowI2Awareness);
-        if (i2AwarenessProceedButton)          i2AwarenessProceedButton.onClick.RemoveListener(OnI2AwarenessProceed);
+        if (i2SubmitButton)                     i2SubmitButton.onClick.RemoveListener(OnI2SubmitDocuments);
+        if (i2SubmitCompleteProceedButton)      i2SubmitCompleteProceedButton.onClick.RemoveListener(ShowI2Awareness);
+        if (i2AwarenessProceedButton)           i2AwarenessProceedButton.onClick.RemoveListener(OnI2AwarenessProceed);
 
-        if (i3IntroProceedButton)              i3IntroProceedButton.onClick.RemoveListener(OnI3IntroProceed);
-        if (i3DuringTestProceedButton)         i3DuringTestProceedButton.onClick.RemoveListener(OnI3DuringTestProceed);
-        if (i3SuccessProceedButton)            i3SuccessProceedButton.onClick.RemoveListener(OnI3SuccessProceed);
+        if (i3IntroProceedButton)               i3IntroProceedButton.onClick.RemoveListener(OnI3IntroProceed);
+        if (i3DuringTestProceedButton)          i3DuringTestProceedButton.onClick.RemoveListener(OnI3DuringTestProceed);
+        if (i3SuccessProceedButton)             i3SuccessProceedButton.onClick.RemoveListener(OnI3SuccessProceed);
 
-        if (i4CompleteProceedButton)           i4CompleteProceedButton.onClick.RemoveListener(StartInteraction5);
-        if (i5CollectButton)                   i5CollectButton.onClick.RemoveListener(OnI5Collect);
-        if (i5CompleteProceedButton)           i5CompleteProceedButton.onClick.RemoveListener(StartInteraction6);
+        if (i4CompleteProceedButton)            i4CompleteProceedButton.onClick.RemoveListener(StartInteraction5);
+        if (i5CollectButton)                    i5CollectButton.onClick.RemoveListener(OnI5Collect);
+        if (i5CompleteProceedButton)            i5CompleteProceedButton.onClick.RemoveListener(StartInteraction6);
 
         foreach (var entry in i4Targets)
         {
@@ -181,24 +207,22 @@ public sealed class Scene1Manager : MonoBehaviour
             entry.clickButton.onClick.RemoveAllListeners();
         }
 
-        if (i6IntroProceedButton)              i6IntroProceedButton.onClick.RemoveListener(OnI6IntroProceed);
-        if (i6CompletionProceedButton)         i6CompletionProceedButton.onClick.RemoveListener(StartInteraction7);
+        // Unwire I6 per-canvas buttons + intro/completion
+        WireI6Buttons(false);
+        if (i6IntroProceedButton)               i6IntroProceedButton.onClick.RemoveListener(OnI6IntroProceed);
+        if (i6CompletionProceedButton)          i6CompletionProceedButton.onClick.RemoveListener(StartInteraction7);
 
-        if (i7IntroProceedButton)              i7IntroProceedButton.onClick.RemoveListener(OnI7IntroProceed);
-        if (i7CompletionProceedButton)         i7CompletionProceedButton.onClick.RemoveListener(LoadNextScene);
+        if (i7CompletionProceedButton)          i7CompletionProceedButton.onClick.RemoveListener(OnI7Proceed);
     }
 
     private void Start()
     {
-        // 1) Force EVERYTHING we manage to be off
-        HideAll(); // turns off all canvases
+        // 1) Turn everything off
+        HideAll();
 
-        // 2) Also explicitly turn OFF all GOs that will be enabled later in the flow
-        //    (so scene start is always a clean slate)
+        // 2) Explicitly off for late-on objects
         foreach (var doc in i2DocsToActivateOnTable)
-        {
             if (doc) doc.SetActive(false);
-        }
 
         foreach (var entry in i4Targets)
         {
@@ -206,12 +230,20 @@ public sealed class Scene1Manager : MonoBehaviour
             if (entry != null) entry.clicked = false;
         }
 
-       
-        if (i3ToggleOnObject) i3ToggleOnObject.SetActive(false);
-
+        if (i3ToggleOnObject)  i3ToggleOnObject.SetActive(false);
         if (i5TargetObject)    i5TargetObject.SetActive(false);
 
-        // 3) Finally, show Welcome
+        // I6 canvases off
+        foreach (var step in i6Steps)
+        {
+            if (step?.entries == null) continue;
+            foreach (var e in step.entries)
+                if (e?.canvas) e.canvas.SetActive(false);
+        }
+        SetActive(i6IntroCanvas, false);
+        SetActive(i6CompletionCanvas, false);
+
+        // 3) Show Welcome
         SetActive(welcomeCanvas, true);
     }
 
@@ -226,23 +258,33 @@ public sealed class Scene1Manager : MonoBehaviour
 
     private void OnModuleIntroProceed()
     {
-        TeleportPlayerToTarget();
+        TeleportPlayerTo(teleportTarget);
         StartInteraction1();
     }
 
-    private void TeleportPlayerToTarget()
+    private void TeleportPlayerTo(Transform target)
+{
+    if (playerRig == null || target == null)
     {
-        if (playerRig == null || teleportTarget == null)
-        {
-            Debug.LogWarning("[Scene1Manager] Teleport skipped, missing references.");
-            return;
-        }
-        playerRig.position = teleportTarget.position;
-        playerRig.rotation = teleportTarget.rotation;
+        Debug.LogWarning("[Scene1Manager] Teleport skipped (missing references).");
+        return;
     }
 
+    var cc = playerRig.GetComponent<CharacterController>();
+    if (cc) cc.enabled = false;
+
+    playerRig.position = target.position;
+
+    // Align only yaw to anchor
+    Vector3 e = playerRig.rotation.eulerAngles;
+    playerRig.rotation = Quaternion.Euler(0f, target.rotation.eulerAngles.y, 0f);
+
+    if (cc) cc.enabled = true;
+}
+
+
     // =========================================================
-    // Interaction 1: Greeting (two info canvases in sequence)
+    // Interaction 1: Greeting
     // =========================================================
     private void StartInteraction1()
     {
@@ -262,7 +304,7 @@ public sealed class Scene1Manager : MonoBehaviour
     }
 
     // =========================================================
-    // Interaction 2: Document request -> place docs -> submit complete -> awareness
+    // Interaction 2: Documents
     // =========================================================
     private void StartInteraction2()
     {
@@ -273,13 +315,10 @@ public sealed class Scene1Manager : MonoBehaviour
     private void OnI2SubmitDocuments()
     {
         foreach (var doc in i2DocsToActivateOnTable)
-        {
             if (doc) doc.SetActive(true);
-        }
 
         HideAll();
         SetActive(i2SubmitCompleteCanvas, true);
-        // (Optional) Invoke(nameof(ShowI2Awareness), 1.0f);
     }
 
     private void ShowI2Awareness()
@@ -291,29 +330,24 @@ public sealed class Scene1Manager : MonoBehaviour
     private void OnI2AwarenessProceed()
     {
         foreach (var doc in i2DocsToActivateOnTable)
-        {
             if (doc) doc.SetActive(false);
-        }
+
         StartInteraction3();
     }
 
     // =========================================================
-    // Interaction 3: Alcohol analyzer test
+    // Interaction 3: Alcohol analyzer
     // =========================================================
     private void StartInteraction3()
     {
         HideAll();
-
-        // Ensure initial toggle state before starting test
         if (i3ToggleOnObject)  i3ToggleOnObject.SetActive(false);
         if (i3ToggleOffObject) i3ToggleOffObject.SetActive(true);
-
         SetActive(i3IntroCanvas, true);
     }
 
     private void OnI3IntroProceed()
     {
-        // Start test: one GO ON, one GO OFF, and show "Take test" canvas
         if (i3ToggleOnObject)  i3ToggleOnObject.SetActive(true);
         if (i3ToggleOffObject) i3ToggleOffObject.SetActive(false);
 
@@ -323,7 +357,6 @@ public sealed class Scene1Manager : MonoBehaviour
 
     private void OnI3DuringTestProceed()
     {
-        // Success: swap back the states, show success canvas
         if (i3ToggleOnObject)  i3ToggleOnObject.SetActive(false);
         if (i3ToggleOffObject) i3ToggleOffObject.SetActive(true);
 
@@ -337,7 +370,7 @@ public sealed class Scene1Manager : MonoBehaviour
     }
 
     // =========================================================
-    // Interaction 4: Click listed objects via adjacent buttons (all must be clicked)
+    // Interaction 4: PPE click-through
     // =========================================================
     private void StartInteraction4()
     {
@@ -346,9 +379,9 @@ public sealed class Scene1Manager : MonoBehaviour
         {
             if (entry == null) continue;
             entry.clicked = false;
-            if (entry.targetObject) entry.targetObject.SetActive(true); // ensure visible at start
+            if (entry.targetObject) entry.targetObject.SetActive(true);
+            if (entry.clickButtonParent) entry.clickButtonParent.SetActive(true);
         }
-
         SetActive(i4InfoCanvas, true);
     }
 
@@ -357,74 +390,170 @@ public sealed class Scene1Manager : MonoBehaviour
         if (entry == null || entry.clicked) return;
 
         entry.clicked = true;
-        if (entry.targetObject) entry.targetObject.SetActive(false);
+        if (entry.targetObject)      entry.targetObject.SetActive(false);
         if (entry.clickButtonParent) entry.clickButtonParent.SetActive(false);
 
-        // Check if all done
         foreach (var e in i4Targets)
-        {
-            if (e != null && !e.clicked)
-            {
-                return; // not finished yet
-            }
-        }
+            if (e != null && !e.clicked) return;
 
-        // All clicked
         HideAll();
-        SetActive(i4CompleteCanvas, true); // informs "now we will collect wheel chokes"
+        SetActive(i4CompleteCanvas, true);
     }
 
     // =========================================================
     // Interaction 5: Wheel Choke Pickup
-    // - Start: i5TargetObject.SetActive(true)
-    // - Collect: i5TargetObject.SetActive(false)
     // =========================================================
     private void StartInteraction5()
     {
         HideAll();
-
         if (i5TargetObject) i5TargetObject.SetActive(true);
-
         SetActive(i5InfoCanvas, true);
     }
 
     private void OnI5Collect()
     {
         if (i5TargetObject) i5TargetObject.SetActive(false);
-
         HideAll();
         SetActive(i5CompleteCanvas, true);
     }
 
     // =========================================================
-    // Interaction 6: Single-script (Intro -> Completion -> Proceed)
+    // Interaction 6: Intro → per-canvas Check buttons → Completion
     // =========================================================
     private void StartInteraction6()
     {
         HideAll();
+
+        if ((i6Steps == null || i6Steps.Count == 0))
+        {
+            Debug.LogWarning("[Scene1Manager] I6 has no steps; skipping to I7.");
+            StartInteraction7();
+            return;
+        }
+
+        // Show intro first
         SetActive(i6IntroCanvas, true);
+
+        // Prepare indices for when intro is acknowledged
+        _i6StepIndex = 0;
+        _i6EntryIndex = 0;
     }
 
     private void OnI6IntroProceed()
     {
+        // Start the actual checklist flow
         HideAll();
-        SetActive(i6CompletionCanvas, true);
+        TeleportToI6CurrentStep();
+        ShowI6CurrentEntry();
     }
 
-    // Called by i6CompletionProceedButton
+    // Called when any per-canvas Check button is pressed
+    private void OnI6Check(int stepIndex, int entryIndex)
+    {
+        // ignore if not current to avoid race/duplicates
+        if (stepIndex != _i6StepIndex || entryIndex != _i6EntryIndex) return;
+
+        if (!AdvanceI6())
+        {
+            // All done -> show I6 completion canvas
+            HideAll();
+            TeleportPlayerTo(i6CompletionTeleportPoint);
+            SetActive(i6CompletionCanvas, true);
+        }
+    }
+
+    private bool AdvanceI6()
+    {
+        if (_i6StepIndex < 0 || _i6StepIndex >= i6Steps.Count) return false;
+        var step = i6Steps[_i6StepIndex];
+        if (step == null) return false;
+
+        HideI6CurrentEntry();
+        _i6EntryIndex++;
+
+        // more entries in this step?
+        if (step.entries != null && _i6EntryIndex < step.entries.Count)
+        {
+            ShowI6CurrentEntry();
+            return true;
+        }
+
+        // move to next step
+        _i6StepIndex++;
+        _i6EntryIndex = 0;
+
+        if (_i6StepIndex < i6Steps.Count)
+        {
+            TeleportToI6CurrentStep();
+            ShowI6CurrentEntry();
+            return true;
+        }
+
+        // no more steps
+        return false;
+    }
+
+    private void TeleportToI6CurrentStep()
+    {
+        if (_i6StepIndex < 0 || _i6StepIndex >= i6Steps.Count) return;
+        var step = i6Steps[_i6StepIndex];
+        if (step?.teleportPoint == null)
+        {
+            Debug.LogWarning("[Scene1Manager] I6 teleport skipped (missing teleport point).");
+            return;
+        }
+        TeleportPlayerTo(step.teleportPoint);
+    }
+
+    private void ShowI6CurrentEntry()
+    {
+        if (_i6StepIndex < 0 || _i6StepIndex >= i6Steps.Count) return;
+        var step = i6Steps[_i6StepIndex];
+        if (step?.entries == null || _i6EntryIndex < 0 || _i6EntryIndex >= step.entries.Count) return;
+
+        var entry = step.entries[_i6EntryIndex];
+        if (entry?.canvas) entry.canvas.SetActive(true);
+        // The button lives on the canvas; already wired in Awake.
+    }
+
+    private void HideI6CurrentEntry()
+    {
+        if (_i6StepIndex < 0 || _i6StepIndex >= i6Steps.Count) return;
+        var step = i6Steps[_i6StepIndex];
+        if (step?.entries == null || _i6EntryIndex < 0 || _i6EntryIndex >= step.entries.Count) return;
+
+        var entry = step.entries[_i6EntryIndex];
+        if (entry?.canvas) entry.canvas.SetActive(false);
+    }
+
+    // Completion proceed → go to Interaction 7
+    private void OnI6CompletionProceed()
+    {
+        StartInteraction7();
+    }
+
+    // =========================================================
+    // Interaction 7: Show completion → OpenGate() → Load next scene
+    // =========================================================
     private void StartInteraction7()
     {
         HideAll();
-        SetActive(i7IntroCanvas, true);
+        SetActive(i7CompletionCanvas, true);
     }
 
-    // =========================================================
-    // Interaction 7: Single-script (Intro -> Completion -> Load Scene)
-    // =========================================================
-    private void OnI7IntroProceed()
+    private void OnI7Proceed()
     {
-        HideAll();
-        SetActive(i7CompletionCanvas, true);
+        OpenGate();          // your gate logic here (edit the method below)
+        LoadNextScene();
+    }
+
+    // --- Placeholder gate logic in the same script ---
+    private void OpenGate()
+    {
+        // TODO: Implement gate opening (animation, timeline, SFX, etc.)
+        // Example:
+        // if (gateAnimator) gateAnimator.SetTrigger("Open");
+        // Debug.Log("Gate opening...");
     }
 
     private void LoadNextScene()
@@ -442,7 +571,6 @@ public sealed class Scene1Manager : MonoBehaviour
     // =========================================================
     private void HideAll()
     {
-        // Turn off every canvas we manage
         SetActive(welcomeCanvas, false);
         SetActive(moduleIntroCanvas, false);
 
@@ -463,16 +591,50 @@ public sealed class Scene1Manager : MonoBehaviour
         SetActive(i5InfoCanvas, false);
         SetActive(i5CompleteCanvas, false);
 
+        // I6 intro/completion
         SetActive(i6IntroCanvas, false);
         SetActive(i6CompletionCanvas, false);
 
-        SetActive(i7IntroCanvas, false);
         SetActive(i7CompletionCanvas, false);
+
+        // Ensure all I6 canvases are OFF
+        foreach (var step in i6Steps)
+        {
+            if (step?.entries == null) continue;
+            foreach (var e in step.entries)
+                if (e?.canvas) e.canvas.SetActive(false);
+        }
     }
 
     private void SetActive(GameObject go, bool active)
     {
         if (go && go.activeSelf != active) go.SetActive(active);
+    }
+
+    private void WireI6Buttons(bool add)
+    {
+        for (int s = 0; s < i6Steps.Count; s++)
+        {
+            var step = i6Steps[s];
+            if (step?.entries == null) continue;
+
+            for (int e = 0; e < step.entries.Count; e++)
+            {
+                var entry = step.entries[e];
+                if (entry?.checkButton == null) continue;
+
+                if (add)
+                {
+                    int stepIndex = s;   // capture
+                    int entryIndex = e;  // capture
+                    entry.checkButton.onClick.AddListener(() => OnI6Check(stepIndex, entryIndex));
+                }
+                else
+                {
+                    entry.checkButton.onClick.RemoveAllListeners();
+                }
+            }
+        }
     }
 
 #if UNITY_EDITOR
