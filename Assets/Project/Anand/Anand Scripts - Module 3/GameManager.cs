@@ -14,6 +14,7 @@ using UnityEngine.XR.Interaction.Toolkit; // at top of the file
 using UnityEngine.XR.Interaction.Toolkit.Interactables; // Add this line for XRBaseInteractable and XRSimpleInteractable
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.Animations; // Add this line for XRRayInteractor
+using UnityEngine.SceneManagement; // Add this line for scene loading
 
 public sealed class GameManager : MonoBehaviour
 {
@@ -115,6 +116,10 @@ public sealed class GameManager : MonoBehaviour
     [Tooltip("Automatically start the sequence on Awake.")]
     public bool autoStart = true;
 
+    [Header("Scene Loading")]
+    [Tooltip("Name of the scene to load after completing all steps (leave empty to not load any scene).")]
+    [SerializeField] private string nextSceneName = "";
+
     // -----------------------------
     // State
     // -----------------------------
@@ -173,7 +178,16 @@ public sealed class GameManager : MonoBehaviour
         if (nextIdx < steps.Count)
             GoTo(nextIdx);
         else
+        {
             Debug.Log("[GameManager] Reached end of sequence.");
+            
+            // Load next scene if specified
+            if (!string.IsNullOrEmpty(nextSceneName))
+            {
+                Debug.Log($"[GameManager] Loading next scene: {nextSceneName}");
+                SceneManager.LoadScene(nextSceneName);
+            }
+        }
     }
 
     public void Back()
@@ -288,7 +302,16 @@ public sealed class GameManager : MonoBehaviour
         if (nextIdx < steps.Count)
             GoTo(nextIdx);
         else
+        {
             Debug.Log("[GameManager] Sequence complete.");
+            
+            // Load next scene if specified
+            if (!string.IsNullOrEmpty(nextSceneName))
+            {
+                Debug.Log($"[GameManager] Loading next scene: {nextSceneName}");
+                SceneManager.LoadScene(nextSceneName);
+            }
+        }
     }
 
     private IEnumerator MarshallSpawnEvent(List<UnityEngine.Object> refsList)

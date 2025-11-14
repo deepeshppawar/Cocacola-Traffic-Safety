@@ -15,6 +15,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables; // Add this line for XRB
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.Animations; // Add this line for XRRayInteractor
 using DG.Tweening; // Add this line for DOTween
+using UnityEngine.SceneManagement; // Add this line for scene loading
 
 public sealed class GameManagerModule4 : MonoBehaviour
 {
@@ -115,6 +116,10 @@ public sealed class GameManagerModule4 : MonoBehaviour
     [Header("Start Options")]
     [Tooltip("Automatically start the sequence on Awake.")]
     public bool autoStart = true;
+
+    [Header("Scene Loading")]
+    [Tooltip("Name of the scene to load after completing all steps (leave empty to not load any scene).")]
+    [SerializeField] private string nextSceneName = "";
 
     // -----------------------------
     // State
@@ -294,7 +299,16 @@ public sealed class GameManagerModule4 : MonoBehaviour
         if (nextIdx < steps.Count)
             GoTo(nextIdx);
         else
+        {
             Debug.Log("[GameManager] Sequence complete.");
+            
+            // Load next scene if specified
+            if (!string.IsNullOrEmpty(nextSceneName))
+            {
+                Debug.Log($"[GameManager] Loading next scene: {nextSceneName}");
+                SceneManager.LoadScene(nextSceneName);
+            }
+        }
     }
 
     private IEnumerator MarshallSpawnEvent(List<UnityEngine.Object> refsList)
@@ -862,7 +876,8 @@ public sealed class GameManagerModule4 : MonoBehaviour
             }
         }
 
-        // CHANGE 1: Hide all elements initially
+        // Initially hide all elements except door (keep door visible)
+        doorObject.SetActive(true);
         for (int i = 0; i < 3; i++)
         {
             buttons[i].gameObject.SetActive(false);
@@ -917,6 +932,8 @@ public sealed class GameManagerModule4 : MonoBehaviour
                     // Stop blinking and show success object
                     blinkObj1[buttonIndex].SetActive(false);
                     blinkObj2[buttonIndex].SetActive(false);
+                    //Wanna turn the button component to turn off so I should not be able to click it again
+                    buttons[buttonIndex].interactable = false;
                     successObj[buttonIndex].SetActive(true);
                     
                     // CHANGE 2: Removed button color change to green
