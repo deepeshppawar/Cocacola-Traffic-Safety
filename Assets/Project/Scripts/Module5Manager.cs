@@ -1,9 +1,16 @@
 // SceneStepManager.cs
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
+using Unity.XR.CoreUtils; // XROrigin
+// using TMPro; // Not needed for this functionality
+using UnityEngine.XR.Interaction.Toolkit; // at top of the file
+using UnityEngine.XR.Interaction.Toolkit.Interactables; // Add this line for XRBaseInteractable and XRSimpleInteractable
+using UnityEngine.XR.Interaction.Toolkit.UI;
+using UnityEngine.Animations; // Add this line for XRRayInteractor
+using UnityEngine.SceneManagement; // Add this line for scene loading
 
 [DisallowMultipleComponent]
 public sealed class SceneStepManager2 : MonoBehaviour
@@ -39,7 +46,7 @@ public sealed class SceneStepManager2 : MonoBehaviour
         public List<GameObject> objectsToEnable = new();
 
         [Tooltip("Optional object(s) to disable when this step starts")]
-        public List<GameObject> objectsToDisable = new(); // 🟡 NEW FEATURE
+        public List<GameObject> objectsToDisable = new(); 
 
         [Tooltip("Optional button to proceed after interacting within this step")]
         public Button specialProceedButton;
@@ -69,13 +76,44 @@ public sealed class SceneStepManager2 : MonoBehaviour
 
             // Normal proceed buttons
             foreach (var btn in step.proceedButtons)
-                if (btn != null) btn.onClick.AddListener(() => OnStepProceed(capturedIndex));
+                if (btn != null) 
+                {
+                    btn.onClick.AddListener(() => OnStepProceed(capturedIndex));
+                    EnsureXRInteractable(btn);
+                }
 
             // MCQ buttons
             if (step.isMCQ && step.mcqButtons != null)
             {
                 foreach (var mcqBtn in step.mcqButtons)
-                    if (mcqBtn != null) mcqBtn.onClick.AddListener(() => OnMCQButtonClicked(mcqBtn));
+                    if (mcqBtn != null) 
+                    {
+                        mcqBtn.onClick.AddListener(() => OnMCQButtonClicked(mcqBtn));
+                        EnsureXRInteractable(mcqBtn);
+                    }
+            }
+        }
+    }
+
+    private void EnsureXRInteractable(Button button)
+    {
+        // Add XR Simple Interactable if not present
+        if (button.GetComponent<XRSimpleInteractable>() == null)
+        {
+            var xrInteractable = button.gameObject.AddComponent<XRSimpleInteractable>();
+            
+            // Ensure the button has a collider for XR interaction
+            if (button.GetComponent<Collider>() == null)
+            {
+                var boxCollider = button.gameObject.AddComponent<BoxCollider>();
+                boxCollider.isTrigger = true;
+                
+                // Set collider size based on RectTransform
+                RectTransform rectTransform = button.GetComponent<RectTransform>();
+                if (rectTransform != null)
+                {
+                    boxCollider.size = new Vector3(rectTransform.rect.width, rectTransform.rect.height, 10f);
+                }
             }
         }
     }
@@ -138,6 +176,8 @@ public sealed class SceneStepManager2 : MonoBehaviour
         // Move canvas
         if (step.canvas != null)
         {
+            EnsureCanvasXRReady(step.canvas);
+            
             if (step.canvasTarget != null)
             {
                 step.canvas.transform.position = step.canvasTarget.position;
@@ -169,6 +209,28 @@ public sealed class SceneStepManager2 : MonoBehaviour
 
         // Play audio
         PlayStepAudio(step.stepAudio, step.audioVolume);
+    }
+
+    private void EnsureCanvasXRReady(GameObject canvasObject)
+    {
+        Canvas canvas = canvasObject.GetComponent<Canvas>();
+        if (canvas != null)
+        {
+            // Set to World Space for XR interaction
+            canvas.renderMode = RenderMode.WorldSpace;
+            
+            // Ensure GraphicRaycaster is present
+            if (canvas.GetComponent<GraphicRaycaster>() == null)
+            {
+                canvas.gameObject.AddComponent<GraphicRaycaster>();
+            }
+            
+            // Add TrackedDeviceGraphicRaycaster for XR
+            if (canvas.GetComponent<TrackedDeviceGraphicRaycaster>() == null)
+            {
+                canvas.gameObject.AddComponent<TrackedDeviceGraphicRaycaster>();
+            }
+        }
     }
 
     private void PlayStepAudio(AudioClip clip, float volume)
@@ -261,6 +323,8 @@ public sealed class SceneStepManager2 : MonoBehaviour
             var resultCanvas = step.mcqResultCanvases[buttonIndex];
             if (resultCanvas != null)
             {
+                EnsureCanvasXRReady(resultCanvas);
+                
                 resultCanvas.transform.position = step.canvas.transform.position;
                 resultCanvas.transform.rotation = step.canvas.transform.rotation;
                 resultCanvas.SetActive(true);
@@ -269,6 +333,7 @@ public sealed class SceneStepManager2 : MonoBehaviour
                 {
                     btn.onClick.RemoveAllListeners();
                     btn.onClick.AddListener(() => OnStepProceed(_currentStepIndex));
+                    EnsureXRInteractable(btn);
                 }
             }
         }

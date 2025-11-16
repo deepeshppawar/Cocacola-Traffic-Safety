@@ -1,5 +1,4 @@
 {
-    "version": 1,
     "name": "XRI Default Input Actions",
     "maps": [
         {
@@ -2448,15 +2447,6 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
-                },
-                {
-                    "name": "Drive",
-                    "type": "Value",
-                    "id": "56b547ec-65e4-4f20-8f5f-e9d1f4f19f19",
-                    "expectedControlType": "Vector2",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -2534,28 +2524,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "Jump",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "ce6a4e73-7451-44b3-aeb5-13a99486631f",
-                    "path": "<XRController>{RightHand}/{Primary2DAxis}",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Drive",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "4d8d3c72-5cd0-4c5d-b5ab-f10feea26aef",
-                    "path": "",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Drive",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

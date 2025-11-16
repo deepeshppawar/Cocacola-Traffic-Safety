@@ -11,15 +11,18 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Project/Scenes/Module1.unity
     guid: e4a5c540c253fb84ba8421090b303f46
-  - enabled: 1
+  - enabled: 0
     path: Assets/Project/Scenes/Module2.unity
     guid: 3c02724fbbeedc041849b7420e03bbba
-  - enabled: 1
+  - enabled: 0
     path: Assets/Project/Anand/Anand Scene - Module 3.unity
     guid: 9f774ee05ccba0941bc5934779c639e9
-  - enabled: 1
+  - enabled: 0
     path: Assets/Project/Anand/Anand Scene - Module 4.unity
     guid: 84da3ecd57d14ae4d88f979584fea201
+  - enabled: 1
+    path: Assets/Project/Scenes/Module5.unity
+    guid: 260c746e891fb14479d75c4ae35b629c
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: bfa1182bd221b4ca89619141f66f1260, type: 2}
     Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: dc5a169419fa04987b057f65238cf3ba, type: 2}
