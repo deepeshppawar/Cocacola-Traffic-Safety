@@ -285,6 +285,10 @@ public sealed class GameManagerModule4 : MonoBehaviour
         {
             yield return StartCoroutine(DriverMCQEvent(es));
         }
+        else if (es.actionName == "ChokeRemove")
+        {
+            yield return StartCoroutine(ChokeRemoveEvent(es));
+        }
         else
         {
             // Placeholder for other event actions
@@ -1094,5 +1098,88 @@ public sealed class GameManagerModule4 : MonoBehaviour
         }
     }
 
+    private IEnumerator ChokeRemoveEvent(EventStep es)
+    {
+        if (es == null) yield break;
+
+        // Ensure the event canvas is visible for the whole event
+        if (es.eventCanvasRoot) es.eventCanvasRoot.SetActive(true);
+
+        // Get button references - expect them as GameObjects with Button components
+        Button button1 = null;
+        Button button2 = null;
+
+        if (es.references.Count > 0)
+        {
+            if (es.references[0] is Button)
+                button1 = es.references[0] as Button;
+            else if (es.references[0] is GameObject go1)
+                button1 = go1.GetComponent<Button>();
+        }
+
+        if (es.references.Count > 1)
+        {
+            if (es.references[1] is Button)
+                button2 = es.references[1] as Button;
+            else if (es.references[1] is GameObject go2)
+                button2 = go2.GetComponent<Button>();
+        }
+
+        // Validate references
+        if (!button1 || !button2)
+        {
+            Debug.LogWarning("[GameManager] ChokeRemove: Missing button references. Need two Button components or GameObjects with Button components.");
+            yield break;
+        }
+
+        // Enable both buttons initially
+        button1.gameObject.SetActive(true);
+        button1.interactable = true;
+        button2.gameObject.SetActive(true);
+        button2.interactable = true;
+
+        // Flags to track button clicks
+        bool button1Clicked = false;
+        bool button2Clicked = false;
+
+        // Button click handlers
+        UnityEngine.Events.UnityAction button1Action = () => {
+            if (!button1Clicked)
+            {
+                button1Clicked = true;
+                button1.interactable = false;
+                button1.gameObject.SetActive(false);
+                Debug.Log("[GameManager] ChokeRemove: Button 1 clicked and disabled.");
+            }
+        };
+
+        UnityEngine.Events.UnityAction button2Action = () => {
+            if (!button2Clicked)
+            {
+                button2Clicked = true;
+                button2.interactable = false;
+                button2.gameObject.SetActive(false);
+                Debug.Log("[GameManager] ChokeRemove: Button 2 clicked and disabled.");
+            }
+        };
+
+        // Add button listeners
+        button1.onClick.AddListener(button1Action);
+        button2.onClick.AddListener(button2Action);
+
+        Debug.Log("[GameManager] ChokeRemove: Buttons enabled. Waiting for user to click both buttons.");
+
+        // Wait until both buttons are clicked
+        while (!button1Clicked || !button2Clicked)
+        {
+            yield return null;
+        }
+
+        // Clean up button listeners
+        button1.onClick.RemoveListener(button1Action);
+        button2.onClick.RemoveListener(button2Action);
+
+        Debug.Log("[GameManager] ChokeRemove: Both buttons clicked. Event completed successfully.");
+    }
 
 }
