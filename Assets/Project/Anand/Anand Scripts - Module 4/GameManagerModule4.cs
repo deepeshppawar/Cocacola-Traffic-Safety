@@ -179,7 +179,16 @@ public sealed class GameManagerModule4 : MonoBehaviour
         if (nextIdx < steps.Count)
             GoTo(nextIdx);
         else
+        {
             Debug.Log("[GameManager] Reached end of sequence.");
+            
+            // Load next scene if specified
+            if (!string.IsNullOrEmpty(nextSceneName))
+            {
+                Debug.Log($"[GameManager] Loading next scene: {nextSceneName}");
+                SceneManager.LoadScene(nextSceneName);
+            }
+        }
     }
 
     public void Back()
