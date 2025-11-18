@@ -18,6 +18,7 @@ public sealed class Scene6Manager : MonoBehaviour
     [SerializeField] private GameObject documentCollectionCompleteCanvas;
     [SerializeField] private Button documentCollectionCompleteProceedButton;
     [SerializeField] private List<GameObject> documentRefsToActivate = new List<GameObject>(); // set these active on complete
+    [SerializeField] private List<GameObject> itemsRefsToActivate = new List<GameObject>(); // set these active after document submission
 
     [Header("Exit Flow")]
     [SerializeField] private GameObject exitCanvas;
@@ -65,10 +66,10 @@ public sealed class Scene6Manager : MonoBehaviour
     // Step 1 -> Step 2
     private void OnDocumentCollectProceed()
     {
-        // Activate all referenced docs
-        foreach (var doc in documentRefsToActivate)
+        // Activate all referenced items after document submission
+        foreach (var item in itemsRefsToActivate)
         {
-            if (doc) doc.SetActive(true);
+            if (item) item.SetActive(true);
         }
 
         // Show "Collection Complete" canvas
@@ -79,6 +80,12 @@ public sealed class Scene6Manager : MonoBehaviour
     // Step 2 -> Step 3
     private void OnDocumentCollectionCompleteProceed()
     {
+        // Activate all referenced docs
+        foreach (var doc in documentRefsToActivate)
+        {
+            if (doc) doc.SetActive(true);
+        }
+
         HideAll();
         SetActive(exitCanvas, true);
     }
