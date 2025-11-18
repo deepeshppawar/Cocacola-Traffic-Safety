@@ -420,7 +420,7 @@ public sealed class GameManagerModule2 : MonoBehaviour
         if (es.eventCanvasRoot)
             es.eventCanvasRoot.SetActive(true);
 
-        // Disable proceed button initially
+        // Disable proceed button parent initially
         if (es.nextButton)
             es.nextButton.transform.parent.gameObject.SetActive(false);
 
@@ -448,7 +448,7 @@ public sealed class GameManagerModule2 : MonoBehaviour
                 audioSource.Play();
             }
 
-            // Enable proceed button
+            // Enable proceed button parent
             if (es.nextButton)
                 es.nextButton.transform.parent.gameObject.SetActive(true);
 
@@ -473,9 +473,9 @@ public sealed class GameManagerModule2 : MonoBehaviour
                 audioSource.Play();
             }
 
-            // Enable proceed button
+            // Enable proceed button parent
             if (es.nextButton)
-                es.nextButton.interactable = true;
+                es.nextButton.transform.parent.gameObject.SetActive(true);
 
             Debug.Log("[GameManager] DriverMCQ: Incorrect option selected.");
         };
