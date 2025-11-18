@@ -641,9 +641,10 @@ public sealed class GameManager : MonoBehaviour
     {
         if (!xrOrigin || !anchor) return;
 
-        // Only move XR Origin position, preserve current camera rotation
-        xrOrigin.MoveCameraToWorldLocation(anchor.position);
-        // Removed the MatchOriginUpCameraForward call to preserve user's current camera orientation
+        // Directly set XR Origin position and rotation to match the anchor
+        // This ignores any current camera offset/rotation
+        xrOrigin.transform.position = anchor.position;
+        xrOrigin.transform.rotation = anchor.rotation;
     }
 
     private AudioClip GetAudio(Step step)
