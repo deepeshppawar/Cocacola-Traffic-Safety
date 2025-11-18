@@ -417,6 +417,12 @@ public sealed class GameManager : MonoBehaviour
 
         var sfxCorrect = es.GetRef<AudioClip>(2);
         var sfxWrong   = es.GetRef<AudioClip>(3);
+        GameObject MarshallBoy = es.GetRef<GameObject>(4);
+        if (MarshallBoy != null)
+        {
+            MarshallBoy.SetActive(true);
+            Debug.Log("[GameManager] TruckReverse: MarshallBoy GameObject disabled.");
+        }
 
         if (!btnCorrect || !btnWrong)
         {
@@ -635,9 +641,9 @@ public sealed class GameManager : MonoBehaviour
     {
         if (!xrOrigin || !anchor) return;
 
-        // Move XR Origin so the camera ends up at the anchor pose.
+        // Only move XR Origin position, preserve current camera rotation
         xrOrigin.MoveCameraToWorldLocation(anchor.position);
-        xrOrigin.MatchOriginUpCameraForward(anchor.up, anchor.forward);
+        // Removed the MatchOriginUpCameraForward call to preserve user's current camera orientation
     }
 
     private AudioClip GetAudio(Step step)
@@ -738,6 +744,13 @@ public sealed class GameManager : MonoBehaviour
             yield break;
         }
 
+        GameObject MarshallBoy = refsList[1] as GameObject;
+        if (MarshallBoy != null)
+        {
+            MarshallBoy.SetActive(true);
+            Debug.Log("[GameManager] TruckReverse: MarshallBoy GameObject disabled.");
+        }
+
         // Get the TruckReverseController component
         TruckReverseController truckController = truckControllerGO.GetComponent<TruckReverseController>();
         if (truckController == null)
@@ -774,6 +787,11 @@ public sealed class GameManager : MonoBehaviour
             if (reversedDistance >= maxDistance)
             {
                 Debug.Log("[GameManager] TruckReverse: Maximum reverse distance reached. Event complete.");
+                if (MarshallBoy != null)
+                {
+                    MarshallBoy.SetActive(false);
+                    Debug.Log("[GameManager] TruckReverse: MarshallBoy GameObject enabled.");
+                }
                 break;
             }
 
