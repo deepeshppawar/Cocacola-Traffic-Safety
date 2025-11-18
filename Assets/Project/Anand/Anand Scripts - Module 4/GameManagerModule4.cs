@@ -711,6 +711,9 @@ public sealed class GameManagerModule4 : MonoBehaviour
             removalComplete = true;
             Debug.Log("[GameManager] KeyEvent: Removal completed.");
         });
+        // Wait
+        yield return new WaitForSeconds(2f);
+        removalObject.SetActive(false);
 
         // Wait for removal to complete
         while (!removalComplete)
