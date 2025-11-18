@@ -422,7 +422,7 @@ public sealed class GameManagerModule2 : MonoBehaviour
 
         // Disable proceed button initially
         if (es.nextButton)
-            es.nextButton.interactable = false;
+            es.nextButton.transform.parent.gameObject.SetActive(false);
 
         // Store original colors to restore later
         Color originalCorrectColor = correctButtonImage.color;
@@ -450,7 +450,7 @@ public sealed class GameManagerModule2 : MonoBehaviour
 
             // Enable proceed button
             if (es.nextButton)
-                es.nextButton.interactable = true;
+                es.nextButton.transform.parent.gameObject.SetActive(true);
 
             Debug.Log("[GameManager] DriverMCQ: Correct option selected.");
         };
@@ -641,9 +641,10 @@ public sealed class GameManagerModule2 : MonoBehaviour
     {
         if (!xrOrigin || !anchor) return;
 
-        // Move XR Origin so the camera ends up at the anchor pose.
-        xrOrigin.MoveCameraToWorldLocation(anchor.position);
-        xrOrigin.MatchOriginUpCameraForward(anchor.up, anchor.forward);
+        // Directly set XR Origin position and rotation to match the anchor
+        // This ignores any current camera offset/rotation
+        xrOrigin.transform.position = anchor.position;
+        xrOrigin.transform.rotation = anchor.rotation;
     }
 
     private AudioClip GetAudio(Step step)
