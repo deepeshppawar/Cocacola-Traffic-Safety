@@ -1,0 +1,72 @@
+fileFormatVersion: 2
+guid: 37cbe4a705a1b1c41a40c57cbecae2ad
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 715df9372183c47e389bb6e19fbc3b52, type: 3}
+  editorImportSettings:
+    generateSecondaryUVSet: 0
+  importSettings:
+    nodeNameMethod: 1
+    animationMethod: 2
+    generateMipMaps: 1
+    texturesReadable: 0
+    defaultMinFilterMode: 9729
+    defaultMagFilterMode: 9729
+    anisotropicFilterLevel: 1
+  instantiationSettings:
+    mask: -1
+    layer: 0
+    skinUpdateWhenOffscreen: 1
+    lightIntensityFactor: 1
+    sceneObjectCreation: 2
+  assetDependencies:
+  - type: 0
+    originalUri: Assets\Anjali Updated\New assets\Booth.bin
+    assetPath: 
+  - type: 1
+    originalUri: Assets\Anjali Updated\New assets\Metal3-Normal.png
+    assetPath: 
+  - type: 1
+    originalUri: Assets\Anjali Updated\New assets\Metal3-Diff.png
+    assetPath: 
+  - type: 1
+    originalUri: Assets\Anjali Updated\New assets\Metal3-Rough.png
+    assetPath: 
+  - type: 1
+    originalUri: Assets\Anjali Updated\New assets\Metal2-Normal.png
+    assetPath: 
+  - type: 1
+    originalUri: Assets\Anjali Updated\New assets\Metal2-Diff.png
+    assetPath: 
+  - type: 1
+    originalUri: Assets\Anjali Updated\New assets\Metal2-Rough.png
+    assetPath: 
+  - type: 1
+    originalUri: Assets\Anjali Updated\New assets\Wood-Normal.png
+    assetPath: 
+  - type: 1
+    originalUri: Assets\Anjali Updated\New assets\Wood-Diff.png
+    assetPath: 
+  - type: 1
+    originalUri: Assets\Anjali Updated\New assets\Wood-Rough.png
+    assetPath: 
+  - type: 1
+    originalUri: Assets\Anjali Updated\New assets\Metal1-Normal.png
+    assetPath: 
+  - type: 1
+    originalUri: Assets\Anjali Updated\New assets\Metal1-Diff.png
+    assetPath: 
+  - type: 1
+    originalUri: Assets\Anjali Updated\New assets\Metal1-Rough.png
+    assetPath: 
+  reportItems:
+  - type: 0
+    code: 8
+    messages:
+    - Cannot find resource at path Assets\Anjali Updated\New assets\Booth.bin
+    - 0
