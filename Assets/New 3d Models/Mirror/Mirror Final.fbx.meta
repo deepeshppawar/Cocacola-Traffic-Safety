@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: ddde441db09d6da41834eeaa4052d458
+guid: db41062636ad3274492fa442d124ef5e
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -7,18 +7,13 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: 01
-    second: {fileID: 2100000, guid: 387c71a3e97b3574c93e3bf2c3528b10, type: 2}
+      name: Mirror
+    second: {fileID: 2100000, guid: 859f3bfd7e92bf5488e08c32b1b9c8bc, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Barbed Wire
-    second: {fileID: 2100000, guid: 730cb7637c594a641b4ae1eaf1a5973e, type: 2}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Barbed Wire
-    second: {fileID: 2800000, guid: 6787ff61cbb78bb429ca204ed862ecfd, type: 3}
+      name: '[0136_Charcoal].001'
+    second: {fileID: 2100000, guid: 1b65899f88d9958438ef5bcbb089d6e7, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
