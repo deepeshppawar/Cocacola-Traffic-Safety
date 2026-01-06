@@ -8,30 +8,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 55daccc09a3b69647bbab145b54a3ab3
-  - enabled: 1
-    path: Assets/Project/Scenes/Module1.unity
+  - enabled: 0
+    path: Assets/Main Scenes/1. Introduction.unity
     guid: e4a5c540c253fb84ba8421090b303f46
-  - enabled: 0
-    path: Assets/Project/Scenes/Module2.unity
-    guid: 3c02724fbbeedc041849b7420e03bbba
-  - enabled: 0
-    path: Assets/Project/Anand/Anand Scene - Module 3.unity
-    guid: 9f774ee05ccba0941bc5934779c639e9
-  - enabled: 0
-    path: Assets/Project/Anand/Anand Scene - Module 4.unity
-    guid: 84da3ecd57d14ae4d88f979584fea201
-  - enabled: 0
-    path: Assets/Project/Scenes/Module5.unity
-    guid: 260c746e891fb14479d75c4ae35b629c
-  - enabled: 0
-    path: Assets/Project/Scenes/4 Tarpaulin Scene.unity
-    guid: 32bb67b81085e4f4d8f673ad275dbb6d
-  - enabled: 0
-    path: Assets/Project/Scenes/Module5 Part3.unity
-    guid: d82c66f29420e2a46a2a75405ca9a05d
-  - enabled: 0
-    path: Assets/Project/Scenes/Module6.unity
-    guid: 05eaac4e9d67f774a922ddba1a0aab27
+  - enabled: 1
+    path: Assets/Main Scenes/1. Module 1 S1.unity
+    guid: a3ad256eec3f285489e42cb05236728c
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: bfa1182bd221b4ca89619141f66f1260, type: 2}
     Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: dc5a169419fa04987b057f65238cf3ba, type: 2}
