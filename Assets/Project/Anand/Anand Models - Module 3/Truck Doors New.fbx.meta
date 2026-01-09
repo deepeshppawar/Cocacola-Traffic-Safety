@@ -3,7 +3,42 @@ guid: ac153dd4805a25b4ca4a28093a9ae597
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.001
+    second: {fileID: -6478536213147159724, guid: 7a410b0307ae6144f8953df7089cebc7, type: 3}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: '[0056_Yellow]'
+    second: {fileID: 2100000, guid: b21daf88bd1694e46b078c48da5f16a8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: '[0137_Black]'
+    second: {fileID: 6495427927187304826, guid: 9fcc2876e52e24246bf266ca688771ad, type: 3}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: '[Gray6]'
+    second: {fileID: 2100000, guid: 729e3b44ff7c29847be159bca212a3cb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: '[Metal_Panel]'
+    second: {fileID: 2100000, guid: a761734291da2cc45b560479cec905da, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: '[Translucent_Glass_Gray]'
+    second: {fileID: 6036678935786123167, guid: db9f3271bcb9e7b47924ebf070c8649a, type: 3}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: '[_0023_FireBrick_]'
+    second: {fileID: 2100000, guid: ceb108dca2df9ef4fa854e1dcb0d801f, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
