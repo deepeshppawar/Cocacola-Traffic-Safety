@@ -20,8 +20,22 @@ public class XRTruckReverse : MonoBehaviour
     public GameObject[] enableOnStop;
     public GameObject[] disableOnStop;
 
+    [Header("Marshal Settings")]
+    public Transform marshalTransform;
+
+    [Header("Marshal Look Settings")]
+    public bool marshalLookAtTruck = true;
+
+    [Header("Marshal X Move Settings")]
+    public float marshalMoveTriggerZ = 22f;
+    public float marshalMoveXAmount = 2f;
+    public float marshalMoveSpeed = 2f;
+
     private InputDevice rightHandDevice;
     private bool hasStopped = false;
+    private bool marshalHasMoved = false;
+
+    private Vector3 marshalTargetPosition;
 
     void Start()
     {
@@ -42,11 +56,36 @@ public class XRTruckReverse : MonoBehaviour
 
     void Update()
     {
-        // Do nothing after stopping
+        // ===== Marshal always looks at truck =====
+        if (marshalLookAtTruck && marshalTransform != null && truckTransform != null)
+        {
+            Vector3 dir = truckTransform.position - marshalTransform.position;
+            dir.y = 0f; // keep marshal upright
+            marshalTransform.rotation = Quaternion.LookRotation(dir);
+        }
+
+        // ===== Trigger marshal X movement when truck reaches Z =====
+        if (!marshalHasMoved && truckTransform.position.z >= marshalMoveTriggerZ)
+        {
+            marshalHasMoved = true;
+            marshalTargetPosition =
+                marshalTransform.position + new Vector3(marshalMoveXAmount, 0f, 0f);
+        }
+
+        // ===== Move marshal smoothly =====
+        if (marshalHasMoved && marshalTransform != null)
+        {
+            marshalTransform.position = Vector3.MoveTowards(
+                marshalTransform.position,
+                marshalTargetPosition,
+                marshalMoveSpeed * Time.deltaTime
+            );
+        }
+
+        // ===== Stop logic =====
         if (hasStopped)
             return;
 
-        // Check Z position FIRST
         if (truckTransform.position.z >= stopZ)
         {
             StopTruck();
@@ -63,10 +102,10 @@ public class XRTruckReverse : MonoBehaviour
         {
             float verticalInput = joystick.y;
 
-            // Pull joystick backward
             if (verticalInput < -deadZone)
             {
-                Vector3 movement = truckTransform.forward * reverseSpeed * Time.deltaTime;
+                Vector3 movement =
+                    truckTransform.forward * reverseSpeed * Time.deltaTime;
 
                 truckTransform.position += movement;
                 xrOriginTransform.position += movement;
@@ -79,14 +118,12 @@ public class XRTruckReverse : MonoBehaviour
     {
         hasStopped = true;
 
-        // Enable objects
         foreach (GameObject obj in enableOnStop)
         {
             if (obj != null)
                 obj.SetActive(true);
         }
 
-        // Disable objects
         foreach (GameObject obj in disableOnStop)
         {
             if (obj != null)
