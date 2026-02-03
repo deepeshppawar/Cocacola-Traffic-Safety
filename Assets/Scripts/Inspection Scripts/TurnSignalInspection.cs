@@ -28,6 +28,9 @@ public class TurnSignalInspection : MonoBehaviour
 
     private void Awake()
     {
+        materials.Clear();
+        originalEmissions.Clear();
+
         foreach (Renderer renderer in indicatorRenderers)
         {
             Material mat = renderer.materials[materialIndex];
@@ -42,67 +45,67 @@ public class TurnSignalInspection : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Call this to start turn signal inspection
-    /// </summary>
     public void StartInspection()
     {
         if (isChecking) return;
-        StartCoroutine(BlinkRoutine());
+        StartCoroutine(SequentialBlinkRoutine());
     }
 
-    private IEnumerator BlinkRoutine()
+    private IEnumerator SequentialBlinkRoutine()
     {
         isChecking = true;
 
-        for (int i = 0; i < blinkCount; i++)
-        {
-            // Glow up
-            yield return LerpEmission(0f, maxEmissionIntensity, glowUpTime);
-
-            // Hold ON
-            yield return new WaitForSeconds(glowHoldTime);
-
-            // Glow down
-            yield return LerpEmission(maxEmissionIntensity, 0f, glowDownTime);
-
-            // OFF pause
-            yield return new WaitForSeconds(offPauseTime);
-        }
-
-        // Restore original emission
         for (int i = 0; i < materials.Count; i++)
         {
-            materials[i].SetColor("_EmissionColor", originalEmissions[i]);
+            yield return BlinkSingleIndicator(i);
         }
 
         isChecking = false;
         OnInspectionCompleted?.Invoke();
     }
 
-    private IEnumerator LerpEmission(float start, float end, float duration)
+    private IEnumerator BlinkSingleIndicator(int index)
+    {
+        Material mat = materials[index];
+
+        for (int i = 0; i < blinkCount; i++)
+        {
+            // Glow up
+            yield return LerpEmission(mat, 0f, maxEmissionIntensity, glowUpTime);
+
+            // Hold ON
+            yield return new WaitForSeconds(glowHoldTime);
+
+            // Glow down
+            yield return LerpEmission(mat, maxEmissionIntensity, 0f, glowDownTime);
+
+            // OFF pause
+            yield return new WaitForSeconds(offPauseTime);
+        }
+
+        // Restore original emission
+        mat.SetColor("_EmissionColor", originalEmissions[index]);
+    }
+
+    private IEnumerator LerpEmission(Material mat, float start, float end, float duration)
     {
         float elapsed = 0f;
 
         while (elapsed < duration)
         {
             float intensity = Mathf.Lerp(start, end, elapsed / duration);
-            SetEmission(intensity);
+            SetEmission(mat, intensity);
 
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        SetEmission(end);
+        SetEmission(mat, end);
     }
 
-    private void SetEmission(float intensity)
+    private void SetEmission(Material mat, float intensity)
     {
         Color finalColor = emissionColor * intensity;
-
-        foreach (Material mat in materials)
-        {
-            mat.SetColor("_EmissionColor", finalColor);
-        }
+        mat.SetColor("_EmissionColor", finalColor);
     }
 }
