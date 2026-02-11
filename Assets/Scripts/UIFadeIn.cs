@@ -64,7 +64,7 @@ public class UIFadeIn : MonoBehaviour
 
     public void SceneChange()
     {
-        //sceneController.ChangeScene(1);
+        sceneController.ChangeScene("1. Introduction");
     }
 
     public void StartFadeIn(float speed)
