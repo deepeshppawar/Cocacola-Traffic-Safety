@@ -23,6 +23,9 @@ public class XRTruckReverse : MonoBehaviour
     [Header("Marshal Settings")]
     public Transform marshalTransform;
 
+    [Header("Railing Settings")]
+    public Transform railingTransform; // NEW
+
     [Header("Marshal Look Settings")]
     public bool marshalLookAtTruck = true;
 
@@ -36,6 +39,7 @@ public class XRTruckReverse : MonoBehaviour
     private bool marshalHasMoved = false;
 
     private Vector3 marshalTargetPosition;
+    private Vector3 railingTargetPosition; // NEW
 
     void Start()
     {
@@ -60,26 +64,44 @@ public class XRTruckReverse : MonoBehaviour
         if (marshalLookAtTruck && marshalTransform != null && truckTransform != null)
         {
             Vector3 dir = truckTransform.position - marshalTransform.position;
-            dir.y = 0f; // keep marshal upright
+            dir.y = 0f;
             marshalTransform.rotation = Quaternion.LookRotation(dir);
         }
 
-        // ===== Trigger marshal X movement when truck reaches Z =====
+        // ===== Trigger marshal + railing movement =====
         if (!marshalHasMoved && truckTransform.position.z >= marshalMoveTriggerZ)
         {
             marshalHasMoved = true;
-            marshalTargetPosition =
-                marshalTransform.position + new Vector3(marshalMoveXAmount, 0f, 0f);
+
+            if (marshalTransform != null)
+                marshalTargetPosition =
+                    marshalTransform.position + new Vector3(marshalMoveXAmount, 0f, 0f);
+
+            if (railingTransform != null)
+                railingTargetPosition =
+                    railingTransform.position + new Vector3(marshalMoveXAmount, 0f, 0f);
         }
 
-        // ===== Move marshal smoothly =====
-        if (marshalHasMoved && marshalTransform != null)
+        // ===== Move marshal & railing smoothly =====
+        if (marshalHasMoved)
         {
-            marshalTransform.position = Vector3.MoveTowards(
-                marshalTransform.position,
-                marshalTargetPosition,
-                marshalMoveSpeed * Time.deltaTime
-            );
+            if (marshalTransform != null)
+            {
+                marshalTransform.position = Vector3.MoveTowards(
+                    marshalTransform.position,
+                    marshalTargetPosition,
+                    marshalMoveSpeed * Time.deltaTime
+                );
+            }
+
+            if (railingTransform != null)
+            {
+                railingTransform.position = Vector3.MoveTowards(
+                    railingTransform.position,
+                    railingTargetPosition,
+                    marshalMoveSpeed * Time.deltaTime
+                );
+            }
         }
 
         // ===== Stop logic =====
