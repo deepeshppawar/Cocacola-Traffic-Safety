@@ -9,6 +9,8 @@ public class VideoEndHandler : MonoBehaviour
     public GameObject screen;
     public GameObject skipButton;
 
+    private bool hasVideoEnded = false; // prevents multiple calls
+
     void Start()
     {
         if (videoPlayer == null)
@@ -18,20 +20,22 @@ public class VideoEndHandler : MonoBehaviour
 
         // Subscribe to the event
         videoPlayer.loopPointReached += OnVideoEnd;
-
-        // Ensure the UI elements are disabled initially
-        //if (uiGameObject != null) uiGameObject.SetActive(false);
     }
 
-    void OnVideoEnd(VideoPlayer vp)
+    public void OnVideoEnd(VideoPlayer vp)
     {
+        if (hasVideoEnded) return; // stop if already triggered
+
+        hasVideoEnded = true;
+
         Debug.Log("Video has ended!");
 
-        // Enable the whole UI GameObject
-            uiGameObject1.SetActive(true);
-            uiGameObject2.SetActive(true);
-            skipButton.SetActive(false);
-            screen.SetActive(false);
+        uiGameObject1.SetActive(true);
+        uiGameObject2.SetActive(true);
+        skipButton.SetActive(false);
+        screen.SetActive(false);
 
+        // optional safety: unsubscribe from event
+        videoPlayer.loopPointReached -= OnVideoEnd;
     }
 }
